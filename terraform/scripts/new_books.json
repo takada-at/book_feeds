@@ -1,0 +1,93 @@
+[
+  {
+    "name": "id",
+    "type": "string",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "raw_title",
+    "type": "string",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "title",
+    "type": "string",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "authors",
+    "type": "string",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "publisher",
+    "type": "string",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "publish_date",
+    "type": "DATE",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "link",
+    "type": "string",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "isbn",
+    "type": "string",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "description",
+    "type": "string",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "keywords",
+    "type": "string",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "c_code",
+    "type": "string",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "author_data",
+    "type": "RECORD",
+    "mode": "REPEATED",
+    "fields": [
+      {
+        "name": "SequenceNumber",
+        "type": "string",
+        "mode": "NULLABLE"
+      },
+      {
+        "name": "ContributorRole",
+        "type": "string",
+        "mode": "REPEATED"
+      },
+      {
+        "name": "PersonName",
+        "type": "RECORD",
+        "mode": "NULLABLE",
+        "fields": [
+          {
+            "name": "collationkey",
+            "type": "string"
+          },
+          {
+            "name": "content",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "name": "BiographicalNote",
+        "type": "string"
+      }
+    ]
+  }
+]
