@@ -62,7 +62,7 @@ resource "google_cloudfunctions2_function" "function" {
     max_instance_request_concurrency = 1
     timeout_seconds     = 120
     environment_variables = {
-        BASE_URL = "https://www.hanmoto.com/ci/bd/search/sdate/today/edate/+1month/order/desc/vw/rss20"
+        PROJECT_NAME = var.project_name
         BUCKET_NAME = google_storage_bucket.data_storage.name
     }
   }
@@ -78,15 +78,40 @@ resource "google_cloud_run_service_iam_binding" "binding" {
   ]
 }
 
-resource "google_cloud_scheduler_job" "job" {
-  name             = "fetch-book-feeds-daily"
-  description      = "fetch-book-feeds-daily"
+resource "google_cloud_scheduler_job" "job1" {
+  name             = "fetch-book-feeds-daily1"
+  description      = "fetch-book-feeds-daily1"
   schedule         = "14 0 * * *"
   time_zone        = "Asia/Tokyo"
 
   http_target {
-    http_method = "GET"
+    http_method = "POST"
     uri         = google_cloudfunctions2_function.function.service_config[0].uri
+    body        = base64encode("{\"days\": 7}")
+    headers = {
+      "Content-Type" = "application/json"
+    }
+
+    oidc_token {
+      service_account_email = google_service_account.default.email
+      audience = google_cloudfunctions2_function.function.service_config[0].uri
+    }
+  }
+}
+
+resource "google_cloud_scheduler_job" "job2" {
+  name             = "fetch-book-feeds-daily2"
+  description      = "fetch-book-feeds-daily2"
+  schedule         = "24 0 * * *"
+  time_zone        = "Asia/Tokyo"
+
+  http_target {
+    http_method = "POST"
+    uri         = google_cloudfunctions2_function.function.service_config[0].uri
+    body        = base64encode("{\"days\": 14}")
+    headers = {
+      "Content-Type" = "application/json"
+    }
 
     oidc_token {
       service_account_email = google_service_account.default.email

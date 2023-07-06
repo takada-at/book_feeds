@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from google.cloud import storage
 from typing import Dict, NamedTuple
 import feedparser
@@ -36,7 +36,8 @@ class HanmotoData(NamedTuple):
 
 
 def upload_gcs(bucket_name: str, path: str, local_path):
-    storage_client = storage.Client()
+    project = os.environ["PROJECT_NAME"]
+    storage_client = storage.Client(project=project)
     bucket = storage_client.get_bucket(bucket_name)
     blob = bucket.blob(path)
     blob.content_encoding = "gzip"
@@ -44,7 +45,8 @@ def upload_gcs(bucket_name: str, path: str, local_path):
 
 
 def download_gcs(bucket_name: str, path: str) -> str:
-    storage_client = storage.Client()
+    project = os.environ["PROJECT_NAME"]
+    storage_client = storage.Client(project=project)
     bucket = storage_client.get_bucket(bucket_name)
     blob = bucket.blob(path)
     blob.content_encoding = "gzip"
@@ -111,7 +113,7 @@ def parse_title(raw_title: str):
     :param title:
     :return:
     """
-    reg = re.compile(u"(?P<title>.*)\s-\s(?P<author>.*)\s\|\s(?P<publisher>.*)")
+    reg = re.compile(u"(?P<title>.*)\s-\s(?P<author>.*)\s\|\s(?P<publisher>.*)", flags=re.DOTALL)
     return reg.match(raw_title).groupdict()
 
 
@@ -140,13 +142,32 @@ def handle_entries(entries):
     return return_values
 
 
-def fetch_feed(url):
-    d = feedparser.parse(url)
+def get_url(date_int: int) -> str:
+    day = f"{date_int}day"
+    url = f"https://www.hanmoto.com/ci/bd/search/sdate/{day}/edate/{day}/order/asc/vw/rss20/"
+    return url
+
+
+def fetch_feed_by_date(target_date: date):
+    today = datetime.today().date()
+    days = (target_date - today).days
+    url = get_url(days)
+    print(url)
+    response = feedparser.parse(url)
+    entries = response["entries"]
+    yield from entries
+
+
+def fetch_feed(target_date: date):
+    entries = []
     unit = 200
-    for i in range(0, len(d["entries"]), unit):
-        entries = d["entries"][i:i + unit]
-        books = handle_entries(entries)
-        yield from books
+    for entry in fetch_feed_by_date(target_date):
+        entries.append(entry)
+        if len(entries) >= unit:
+            yield from handle_entries(entries)
+            entries = []
+    if entries:
+        yield from handle_entries(entries)
 
 
 def get_new_book_cache(bucket_name: str, path: str, today: str):
@@ -163,40 +184,32 @@ def get_new_book_cache(bucket_name: str, path: str, today: str):
     return return_values
 
 
-def fetch_and_save(url: str, bucket_name: str):
-    cache_data_path = "cache/new_book_cache.txt.gz"
-    today = datetime.now().date().isoformat()
-    new_book_cache = get_new_book_cache(bucket_name, cache_data_path, today)
-    new_book_set = set([d[0] for d in new_book_cache])
+def fetch_and_save(target_date: date, bucket_name: str):
+    date_str = target_date.isoformat()
     feed_data = tempfile.NamedTemporaryFile("wb")
     cache_data = tempfile.NamedTemporaryFile("wb")
     count = 0
     with gzip.open(feed_data.name, "wb") as f:
-        with gzip.open(cache_data.name, "wb") as cf:
-            for cache in new_book_cache:
-                cf.write((cache[0] + "\t" + cache[1] + "\n").encode("utf-8"))
-            for b in fetch_feed(url):
-                if b["isbn"] in new_book_set:
-                    continue
-                cf.write((b["isbn"] + "\t" + b["publish_date"] + "\n").encode("utf-8"))
-                f.write((json.dumps(b) + "\n").encode("utf-8"))
-                count += 1
+        for b in fetch_feed(target_date):
+            f.write((json.dumps(b) + "\n").encode("utf-8"))
+            count += 1
     feed_data.flush()
     feed_data.seek(0)
     cache_data.flush()
     cache_data.seek(0)
-    remote_path = f"new_books/date={today}/hanmoto.jsonl.gz"
+    remote_path = f"new_books/date={date_str}/hanmoto.jsonl.gz"
     if count > 0:
         upload_gcs(bucket_name, remote_path, feed_data.name)
-    upload_gcs(bucket_name, cache_data_path, cache_data.name)
-    print(dict(date=today, count=count))
-    return dict(count=count, date=today)
+    print(dict(date=date_str, count=count))
+    return dict(count=count, date=date_str)
 
 
 @functions_framework.http
 def handle_request(request):
-    base_url = os.environ.get("BASE_URL")
     bucket_name = os.environ.get("BUCKET_NAME")
-    print(f"base_url: {base_url}")
-    result = fetch_and_save(base_url, bucket_name)
+    json_data = request.get_json()
+    print(json_data)
+    days = json_data.get("days", 0)
+    target_date = datetime.today().date() + timedelta(days=days)
+    result = fetch_and_save(target_date, bucket_name)
     return dict(result="ok", **result)
