@@ -1,4 +1,8 @@
+.DS_Store
+output/
+
 # Byte-compiled / optimized / DLL files
+auth/
 .idea/
 __pycache__/
 *.py[cod]

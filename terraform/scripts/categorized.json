@@ -1,0 +1,22 @@
+[
+  {
+    "name": "isbn",
+    "type": "string",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "raw_title",
+    "type": "string",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "book_type",
+    "type": "string",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "genre",
+    "type": "string",
+    "mode": "NULLABLE"
+  }
+]      
