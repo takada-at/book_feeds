@@ -1,0 +1,5 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: [ 'build', '-t', 'us-central1-docker.pkg.dev/${PROJECT_ID}/docker-repos/apub_bot:v1.0.0', '.' ]
+images:
+- 'us-central1-docker.pkg.dev/${PROJECT_ID}/docker-repos/apub_bot:v1.0.0'
