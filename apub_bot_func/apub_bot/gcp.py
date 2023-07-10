@@ -117,7 +117,6 @@ def sign_asymmetric(
             "The response received from the server was corrupted in-transit."
         )
     # End integrity verification
-
     print(f"Signature: {base64.b64encode(sign_response.signature)!r}")
     return base64.b64encode(sign_response.signature).decode("ascii")
 
