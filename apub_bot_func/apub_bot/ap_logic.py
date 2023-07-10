@@ -2,6 +2,7 @@ import requests
 from datetime import datetime
 from typing import Dict
 from urllib.parse import urlparse
+import base64
 
 from apub_bot import ap_object, config, gcp, mongodb
 from apub_bot.sig import InjectionableSigner
@@ -48,7 +49,8 @@ def sign_header(method: str, path: str, headers: Dict):
     return signer.sign(headers=headers, method=method, path=path)
 
 
-def sign_func(message):
+def sign_func(message: bytes):
     conf = config.get_config()
-    sig = gcp.sign_asymmetric(conf.kms.key_ring_id, conf.kms.key_id, "1", message)
-    return sig
+    sig = gcp.sign_asymmetric(conf.kms.key_ring_id, conf.kms.key_id, conf.kms.version, message)
+    print(sig)
+    return base64.b64encode(sig.signature).decode("ascii")

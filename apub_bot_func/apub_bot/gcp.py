@@ -60,7 +60,7 @@ def sign_asymmetric(
     key_ring_id: str,
     key_id: str,
     version_id: str,
-    message: str,
+    message: bytes,
 ) -> kms.AsymmetricSignResponse:
     """
     Sign a message using the public key part of an asymmetric key.
@@ -69,7 +69,7 @@ def sign_asymmetric(
         key_ring_id (string): ID of the Cloud KMS key ring (e.g. 'my-key-ring').
         key_id (string): ID of the key to use (e.g. 'my-key').
         version_id (string): Version to use (e.g. '1').
-        message (string): Message to sign.
+        message (bytes): Message to sign.
 
     Returns:
         AsymmetricSignResponse: Signature.
@@ -85,6 +85,7 @@ def sign_asymmetric(
 
     # Calculate the hash.
     hash_ = hashlib.sha256(message).digest()
+    print("digest", hash_)
 
     # Build the digest.
     #
@@ -118,7 +119,7 @@ def sign_asymmetric(
         )
     # End integrity verification
     print(f"Signature: {base64.b64encode(sign_response.signature)!r}")
-    return base64.b64encode(sign_response.signature).decode("ascii")
+    return sign_response
 
 
 def crc32c(data: bytes) -> int:

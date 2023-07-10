@@ -12,7 +12,8 @@ class MongoDbConfig:
 @dataclass
 class KMSConfig:
     key_ring_id: str = "ap_key_ring"
-    key_id: str = "apbot_key"
+    key_id: str = "apbot_key_rsa_pkcs15_sha256"
+    version: str = "1"
 
 
 @dataclass
@@ -27,7 +28,8 @@ class Config:
     base_url: str = "https://example.com/"
     kms: KMSConfig = KMSConfig(
         key_ring_id="ap_key_ring",
-        key_id="apbot_key"
+        key_id="apbot_key_rsa_pkcs15_sha256",
+        version="1"
     )
 
     def get_link(self, path: str):
