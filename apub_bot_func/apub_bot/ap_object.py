@@ -48,7 +48,7 @@ def get_person():
         'icon': {
             'type': 'Image',
             'mediaType': 'image/png',
-            'url': bot_id
+            'url': conf.get_link("static/icon.png")
         }
     }
 
