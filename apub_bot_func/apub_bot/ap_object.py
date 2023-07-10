@@ -2,7 +2,7 @@ from bson.objectid import ObjectId
 from datetime import datetime, timezone
 from typing import Dict
 
-from apub_bot import config, gcp, mongodb
+from apub_bot import config, gcp
 
 
 def get_public_key():
@@ -17,14 +17,14 @@ def get_public_key():
     }
 
 
-def get_accept(object: Dict):
+def get_accept(object_: Dict):
     conf = config.get_config()
     bot_id = conf.bot_id
     return {
         '@context': 'https://www.w3.org/ns/activitystreams',
         'type': 'Accept',
         'actor': bot_id,
-        'object': object,
+        'object': object_,
     }
 
 
@@ -88,3 +88,9 @@ def insert_follower(db, actor_data):
     collection = db["follower"]
     result = collection.insert_one(actor_data)
     return result.inserted_id
+
+
+def remove_follower(db, actor_data):
+    collection = db["follower"]
+    result = collection.delete_one({"actor": actor_data["actor"]})
+    return result.deleted_count

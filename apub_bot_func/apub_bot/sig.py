@@ -2,10 +2,10 @@ from httpsig.sign import HeaderSigner
 from httpsig.utils import generate_message, CaseInsensitiveDict
 
 
-class InjectionableSigner(HeaderSigner):
+class InjectableSigner(HeaderSigner):
     def __init__(self, key_id, secret, algorithm=None, headers=None, sign_header='authorization',
                  sign_func = None):
-        super(InjectionableSigner, self).__init__(key_id, secret, algorithm, headers, sign_header)
+        super(InjectableSigner, self).__init__(key_id, secret, algorithm, headers, sign_header)
         self.sign_func = sign_func
 
     def sign(self, headers, host=None, method=None, path=None):
