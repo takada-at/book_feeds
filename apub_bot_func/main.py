@@ -1,11 +1,13 @@
 import json
+import os
 from flask import Flask, Response, request
-from apub_bot import ap_logic, ap_object, config
+from apub_bot import ap_logic, ap_object, config, mongodb
 
 
 app = Flask(__name__)
 
 
+@app.route("/")
 @app.route('/user')
 def person():
     response = ap_object.get_person()
@@ -40,6 +42,13 @@ def inbox():
         return Response(status=200)
 
 
+@app.route("/outbox/")
+@app.route("/outbox/<int:page>")
+def outbox(page: int = 1):
+    response = ap_logic.get_notes(page)
+    return Response(json.dumps(response), headers={'Content-Type': 'application/activity+json'})
+
+
 @app.route('/.well-known/host-meta')
 def webfinger_host_meta():
     conf = config.get_config()
@@ -66,3 +75,8 @@ def webfinger_resource():
         ]
     }
     return Response(json.dumps(response), headers={'Content-Type': 'jrd+json'})
+
+
+mongodb.init_client()
+if __name__ == "__main__":
+    app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))

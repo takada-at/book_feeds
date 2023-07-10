@@ -6,7 +6,7 @@ from apub_bot import ap_logic, config, gcp
 def test_sign_header():
     conf = config.get_config()
     headers = {
-        "Date": datetime.now().isoformat()
+        "Date": datetime.now().isoformat()[:19] + "Z"
     }
     headers2 = ap_logic.sign_header("POST", "/", headers)
     assert "Signature" in headers2

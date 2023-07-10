@@ -1,6 +1,6 @@
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
-from apub_bot import gcp
+from apub_bot import config, gcp
 
 
 uri = "mongodb+srv://ap_bot:{password}@serverlessinstance0.fzzbd4i.mongodb.net/?retryWrites=true&w=majority"
@@ -26,4 +26,5 @@ def get_client() -> MongoClient:
 
 
 def get_database():
-    pass
+    conf = config.get_config()
+    return client.get_database(conf.mongodb.database)

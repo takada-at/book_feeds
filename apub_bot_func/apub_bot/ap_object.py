@@ -5,15 +5,19 @@ from typing import Dict
 from apub_bot import config, gcp
 
 
+def format_datetime(datetime_obj: datetime) -> str:
+    return datetime_obj.isoformat()[:19] + "Z"
+
+
 def get_public_key():
     conf = config.get_config()
     bot_id = conf.bot_id
-    pubkey = gcp.get_public_key(conf.kms["key_ring_id"], conf.kms["key_id"], "1")
+    pubkey = gcp.get_public_key(conf.kms.key_ring_id, conf.kms.key_id, conf.kms.version)
     return {
         'id': bot_id,
         'type': 'Key',
         'owner': bot_id,
-        'publicKeyPem': pubkey
+        'publicKeyPem': pubkey.pem
     }
 
 
@@ -52,36 +56,60 @@ def get_person():
 def insert_note(db, content: str):
     now = datetime.now(tz=timezone.utc)
     collection = db["note"]
-    result = collection.insert_one({
+    base_dict = {
         "content": content,
         "published": now
-    })
-    return result.inserted_id
+    }
+    result = collection.insert_one(base_dict)
+    base_dict["_id"] = result.inserted_id
+    return convert_note(base_dict)
 
 
 def convert_note(dic):
     conf = config.get_config()
     bot_id = conf.bot_id
     id_ = dic["_id"]
+    url = conf.get_link(f"note/{id_}")
+
     return {
         "@context": "https://www.w3.org/ns/activitystreams",
         "type": "Note",
-        "id": conf.get_link(f"note/{id_}"),
+        "id": url,
         "attributedTo": bot_id,
         "content": dic["content"],
-        "published": dic["published"].isoformat(),
+        "published": format_datetime(dic["published"]),
         "to": [
-            "https://www.w3.org/ns/activitystreams#Public",
-            "https://example.com/test/follower",
+            "https://www.w3.org/ns/activitystreams#Public"
         ]        
+    }
+
+def get_note_create_activity(note):
+    conf = config.get_config()
+    bot_id = conf.bot_id
+    note_id = note["id"].split('/')[-1]
+    note_sub = {key: value for key, value in note.items() if key != "@context"}
+    url = conf.get_link(f"note{note_id}/activity")
+    return {
+        "@context": "https://www.w3.org/ns/activitystreams",
+        "id": url,
+        "type": "Create",
+        "actor": bot_id,
+        "published": note_sub["published"],
+        "to": note_sub["to"],
+        "note": note_sub,
     }
 
 
 def get_note(db, id_):
-    note = db.note.find_one({'_id': ObjectId(id_)})
+    collection = db["note"]
+    note = collection.find_one({'_id': ObjectId(id_)})
     if note is None:
         return None
     return convert_note(note)
+
+
+def get_notes(db, limit: int = 100, skip: int = 0):
+    return [convert_note(note) for note in db["note"].find(limit=limit, skip=skip)]
 
 
 def insert_follower(db, actor_data):
