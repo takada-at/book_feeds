@@ -38,7 +38,7 @@ class Config:
 
     @property
     def bot_id(self):
-        return self.get_link("user")
+        return self.get_link(f"user/{self.bot_preferred_username}")
 
 
 config = Config()

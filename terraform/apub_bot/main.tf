@@ -47,6 +47,18 @@ resource "google_cloud_run_v2_service" "default" {
         name = "PROJECT_NAME"
         value = var.project_name
       }
+      env {
+        name = "BASE_URL"
+        value = "https://apub-bot1-46e33xglnq-uc.a.run.app"
+      }
+      env {
+        name = "BOT_ID"
+        value = "bookbot"
+      }
+      env {
+        name = "BOT_NAME"
+        value = "bookbot"
+      }
     }
   }
 }
