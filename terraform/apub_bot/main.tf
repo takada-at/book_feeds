@@ -82,5 +82,5 @@ resource "google_cloud_run_v2_service_iam_member" "member" {
   location = google_cloud_run_v2_service.default.location
   name = google_cloud_run_v2_service.default.name
   role = "roles/run.developer"
-  member = "serviceAccount:930396250237-compute@developer.gserviceaccount.com"
+  member = "serviceAccount:930396250237@cloudbuild.gserviceaccount.com"
 }
