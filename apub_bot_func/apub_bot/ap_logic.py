@@ -70,7 +70,7 @@ def get_actor_data(actor: str):
     response = requests.get(actor, headers={
         "Accept": "application/activity+json"
     })
-    print(response)
+    print(response, response.json)
     actor_data = response.json()
     for key in ["id", "preferredUsername", "inbox"]:
         assert key in actor_data
@@ -91,7 +91,7 @@ def accept_follow(actor_data: Dict, request_data: Dict):
     headers["Content-Type"] = "application/activity+json"
     headers["Accept"] = "application/activity+json"
     response = requests.post(actor_data["inbox"], json=request_json, headers=headers)
-    print(response, response.content)
+    print(response, response.json)
 
 
 def sign_header(method: str, path: str, headers: Dict, required_headers):

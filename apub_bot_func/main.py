@@ -28,6 +28,7 @@ def inbox():
         return Response(status=400)
     data = request.json
     print(data)
+    print(data)
     if type(data) != dict or "type" not in data:
         return Response(status=400)
     elif data["type"] == "Follow":

@@ -51,8 +51,6 @@ def get_public_key(key_ring_id: str, key_id: str, version_id: str) -> kms.Public
             "The response received from the server was corrupted in-transit."
         )
     # End integrity verification
-
-    print(f"Public key: {public_key.pem}")
     return public_key
 
 
@@ -117,8 +115,6 @@ def sign_asymmetric(
         raise Exception(
             "The response received from the server was corrupted in-transit."
         )
-    # End integrity verification
-    print(f"Signature: {base64.b64encode(sign_response.signature)!r}")
     return sign_response
 
 
