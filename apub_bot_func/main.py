@@ -68,7 +68,7 @@ def webfinger_host_meta():
 @app.route('/.well-known/webfinger')
 def webfinger_resource():
     conf = config.get_config()
-    bot_id = conf.bot_id
+    bot_id = conf.get_link("static/index.html")
     netloc = urlparse(conf.base_url)
     response = {
         'subject': f"acct:{conf.bot_preferred_username}@{netloc.hostname}",
