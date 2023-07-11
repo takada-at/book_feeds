@@ -6,7 +6,8 @@ from apub_bot import config, gcp
 
 
 def format_datetime(datetime_obj: datetime) -> str:
-    return datetime_obj.isoformat()[:19] + "Z"
+    # return datetime_obj.isoformat()[:19] + "Z"
+    return datetime_obj.isoformat()
 
 
 def get_public_key():
