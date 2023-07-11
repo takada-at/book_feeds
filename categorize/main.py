@@ -73,7 +73,7 @@ def do_openai_api(df):
 
 
 def categorize(df):
-    unit = 8
+    unit = 5
     all_result = []
     for i in range(0, len(df), unit):
         target = df[i:i+unit]
