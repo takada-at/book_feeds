@@ -84,7 +84,7 @@ def get_actor_data(actor: str):
 
 def get_digest(data: Dict):
     digest = hashlib.sha256(json.dumps(data).encode("utf-8")).digest()
-    return base64.b64encode(digest)
+    return base64.b64encode(digest).decode("utf-8")
 
 
 def accept_follow(actor_data: Dict, request_data: Dict):
