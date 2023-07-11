@@ -24,7 +24,7 @@ def note(uuid: str):
 
 @app.route("/inbox")
 def inbox():
-    if request.headers["Content-Type"] != "application/activity+json":
+    if request.headers.get("Content-Type") != "application/activity+json":
         return Response(status=400)
     data = request.json
     print(data)
