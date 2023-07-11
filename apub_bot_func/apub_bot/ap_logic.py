@@ -67,7 +67,7 @@ def handle_unfollow(request_data: Dict):
     actor = request_data["object"]["actor"]
     actor_data = get_actor_data(actor)
     db = mongodb.get_database()
-    ap_object.remove_follower(db, actor_data)
+    ap_object.remove_follower(db, request_data["object"])
     accept_follow(actor_data, request_data)
 
 
@@ -76,6 +76,7 @@ def get_actor_data(actor: str):
         "Accept": "application/activity+json"
     })
     actor_data = response.json()
+    print("actor_data", actor_data)
     for key in ["id", "preferredUsername", "inbox"]:
         assert key in actor_data
     return actor_data
