@@ -42,7 +42,7 @@ def send_note(follower, create_activity):
     actor = follower["actor"]
     actor_data = get_actor_data(actor)
     netloc = urlparse(actor_data["inbox"])
-    digest = hashlib.sha256(json.dumps(create_activity).encode("utf-8")).hexdigest()
+    digest = get_digest(create_activity)
     headers = {
         "Host": netloc.hostname,
         "Date": ap_object.get_now(),
@@ -82,12 +82,17 @@ def get_actor_data(actor: str):
     return actor_data
 
 
+def get_digest(data: Dict):
+    digest = hashlib.sha256(json.dumps(data).encode("utf-8")).digest()
+    return base64.b64encode(digest)
+
+
 def accept_follow(actor_data: Dict, request_data: Dict):
     request_json = ap_object.get_accept(request_data)
     print(request_json)
     # sign header
     netloc = urlparse(actor_data["inbox"])
-    digest = hashlib.sha256(json.dumps(request_json).encode("utf-8")).hexdigest()
+    digest = get_digest(request_data)
     headers = {
         "Host": netloc.hostname,
         "Date": ap_object.get_now(),
