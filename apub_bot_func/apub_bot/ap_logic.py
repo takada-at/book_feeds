@@ -6,9 +6,13 @@ import base64
 import concurrent.futures
 import hashlib
 import json
+import logging
 
 from apub_bot import ap_object, config, gcp, mongodb
 from apub_bot.sig import InjectableSigner
+
+
+logger = logging.getLogger(__name__)
 
 
 def get_notes(page: int = 1):
@@ -35,7 +39,7 @@ def send_note_wraper(args):
     try:
         send_note(args[0], args[1])
     except:
-        pass
+        logging.info('General exception noted.', exc_info=True)
 
 
 def send_note(follower, create_activity):
