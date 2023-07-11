@@ -48,7 +48,7 @@ def get_person():
         'preferredUsername': conf.bot_preferred_username,
         'inbox': conf.get_link('inbox'),
         'outbox': conf.get_link('outbox'),
-        'url': get_link("static/index.html"),
+        'url': conf.get_link("static/index.html"),
         'publicKey': get_public_key(),
         'icon': {
             'type': 'Image',
