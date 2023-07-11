@@ -4,7 +4,7 @@ import os
 from urllib.parse import urlparse
 from flask import Flask, Response, request
 from apub_bot import ap_logic, ap_object, config, mongodb
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
