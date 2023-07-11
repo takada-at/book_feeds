@@ -1,30 +1,27 @@
 from dataclasses import dataclass
-from typing import Dict
+from typing import Dict, NamedTuple
 import os
 
 
-@dataclass
-class MongoDbConfig:
+class MongoDbConfig(NamedTuple):
     url: str
     password_secret_key: str
     database: str
 
 
-@dataclass
-class KMSConfig:
+class KMSConfig(NamedTuple):
     key_ring_id: str = "ap_key_ring"
     key_id: str = "apbot_key_rsa_pkcs15_sha256"
     version: str = "1"
 
 
-@dataclass
-class Config:
+class Config(NamedTuple):
     bot_name: str = os.environ["BOT_NAME"]
     bot_preferred_username: str = os.environ["BOT_ID"]
     mongodb: MongoDbConfig = MongoDbConfig(
         url="mongodb+srv://ap_bot:{password}@serverlessinstance0.fzzbd4i.mongodb.net/?retryWrites=true&w=majority",
         password_secret_key="mongodb_password",
-        database="ap_bot_test"
+        database=os.environ["MONGODB_DATABASE"]
     )
     base_url: str = os.environ["BASE_URL"]
     kms: KMSConfig = KMSConfig(

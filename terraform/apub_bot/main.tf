@@ -59,6 +59,10 @@ resource "google_cloud_run_v2_service" "default" {
         name = "BOT_NAME"
         value = "bookbot"
       }
+      env {
+        name = "MONGODB_DATABASE"
+        value = "ap_bot_test"
+      }
     }
   }
 }
