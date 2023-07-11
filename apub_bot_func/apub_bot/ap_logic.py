@@ -84,6 +84,7 @@ def get_actor_data(actor: str):
 
 def accept_follow(actor_data: Dict, request_data: Dict):
     request_json = ap_object.get_accept(request_data)
+    print(request_json)
     # sign header
     netloc = urlparse(actor_data["inbox"])
     digest = hashlib.sha256(json.dumps(request_json).encode("utf-8")).hexdigest()
