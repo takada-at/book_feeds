@@ -45,6 +45,7 @@ def inbox():
             print(e)
             return Response(status=500)
         return Response(status=200)
+    return None
 
 
 @app.route("/outbox/")
