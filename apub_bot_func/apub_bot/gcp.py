@@ -83,7 +83,6 @@ def sign_asymmetric(
 
     # Calculate the hash.
     hash_ = hashlib.sha256(message).digest()
-    print("digest", hash_)
 
     # Build the digest.
     #

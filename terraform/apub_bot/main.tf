@@ -8,17 +8,16 @@ resource "google_service_account" "default" {
   display_name = "ActivityPub Bot Service Account"
 }
 
-data "google_secret_manager_secret_version" "mongodb" {
-  secret = "mongodb_password"
+resource "google_secret_manager_secret_iam_member" "member" {
+  secret_id = "mongodb_password"
+  role = "roles/secretmanager.secretAccessor"
+  member = "serviceAccount:${google_service_account.default.email}"
 }
 
-resource "google_secret_manager_secret_iam_binding" "binding" {
-  project = data.google_secret_manager_secret_version.mongodb.project
-  secret_id = data.google_secret_manager_secret_version.mongodb.secret
+resource "google_secret_manager_secret_iam_member" "token" {
+  secret_id = "apub_bot_secret_token"
   role = "roles/secretmanager.secretAccessor"
-  members = [
-    "serviceAccount:${google_service_account.default.email}"
-  ]
+  member = "serviceAccount:${google_service_account.default.email}"  
 }
 
 data "google_kms_key_ring" "default" {

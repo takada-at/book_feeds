@@ -82,6 +82,11 @@ def get_actor_data(actor: str):
     return actor_data
 
 
+def check_token(token: str) -> bool:
+    expected = gcp.fetch_secret_version("apub_bot_secret_token")
+    return expected == token
+
+
 def get_digest(data: Dict):
     input_data = json.dumps(data)
     digest = hashlib.sha256(input_data.encode("utf-8")).digest()
@@ -122,7 +127,6 @@ def sign_header(method: str, path: str, headers: Dict, required_headers):
 
 
 def sign_func(message: bytes):
-    print(message)
     conf = config.get_config()
     sig = gcp.sign_asymmetric(conf.kms.key_ring_id, conf.kms.key_id, conf.kms.version, message)
     return base64.b64encode(sig.signature).decode("ascii")

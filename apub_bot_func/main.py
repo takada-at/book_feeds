@@ -25,12 +25,24 @@ def note(uuid: str):
     return Response(json.dumps(response), headers={'Content-Type': 'application/activity+json'})
 
 
+@app.route("/hook", method=["POST"])
+def hook():
+    if request.headers.get("Content-Type") != "application/json":
+        return Response(status=400)
+    token = request.headers.get("Authorization")
+    if not ap_logic.check_token(token):
+        return Response(status=401)
+    data = request.json
+    logger.info(data)
+    ap_logic.create_note(data["content"])
+
+
 @app.route("/inbox", methods=["GET", "POST"])
 def inbox():
     if request.headers.get("Content-Type") != "application/activity+json":
         return Response(status=400)
     data = request.json
-    print(data)
+    logger.info(data)
     if type(data) != dict or "type" not in data:
         return Response(status=400)
     elif data["type"] == "Follow":
@@ -48,7 +60,7 @@ def inbox():
             logging.info('General exception noted.', exc_info=True)
             return Response(status=500)
         return Response(status=200)
-    return None
+    return Response(200)
 
 
 @app.route("/outbox/")
