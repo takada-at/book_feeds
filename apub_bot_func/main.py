@@ -1,5 +1,6 @@
 import json
 import os
+from urllib.parse import urlparse
 from flask import Flask, Response, request
 from apub_bot import ap_logic, ap_object, config, mongodb
 
@@ -65,8 +66,9 @@ def webfinger_host_meta():
 def webfinger_resource():
     conf = config.get_config()
     bot_id = conf.bot_id
+    netloc = urlparse(conf.base_url)
     response = {
-        'subject': 'acct:test@example.com',
+        'subject': f"acct:{conf.bot_preferred_username}@{netloc.hostname}",
         'links': [
             {
                 'rel':  'self',
