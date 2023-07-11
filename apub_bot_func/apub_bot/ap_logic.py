@@ -20,7 +20,7 @@ def get_notes(page: int = 1):
 
 def create_note(content: str):
     db = mongodb.get_database()
-    note = ap_object.insert_note(content)
+    note = ap_object.insert_note(db, content)
     create_activity = ap_object.get_note_create_activity(note)
     futures = []
     with concurrent.futures.ThreadPoolExecutor() as executor:
