@@ -25,7 +25,7 @@ def note(uuid: str):
     return Response(json.dumps(response), headers={'Content-Type': 'application/activity+json'})
 
 
-@app.route("/hook", method=["POST"])
+@app.route("/hook", methods=["POST"])
 def hook():
     if request.headers.get("Content-Type") != "application/json":
         return Response(status=400)
