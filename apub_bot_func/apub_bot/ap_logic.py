@@ -83,6 +83,8 @@ def accept_follow(actor_data: Dict, request_data: Dict):
         "Date": ap_object.format_datetime(datetime.now())
     }
     headers = sign_header("POST", netloc.path, headers)
+    headers["Content-Type"] = "application/activity+json"
+    headers["Accept"] = "application/activity+json"
     response = requests.post(actor_data["inbox"], json=request_json, headers=headers)
     print(response)
 
