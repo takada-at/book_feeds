@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import Dict
+import os
 
 
 @dataclass
@@ -18,14 +19,14 @@ class KMSConfig:
 
 @dataclass
 class Config:
-    bot_name: str = "test"
-    bot_preferred_username: str = "test"
+    bot_name: str = os.environ["BOT_NAME"]
+    bot_preferred_username: str = os.environ["BOT_ID"]
     mongodb: MongoDbConfig = MongoDbConfig(
         url="mongodb+srv://ap_bot:{password}@serverlessinstance0.fzzbd4i.mongodb.net/?retryWrites=true&w=majority",
         password_secret_key="mongodb_password",
         database="ap_bot_test"
     )
-    base_url: str = "https://example.com/"
+    base_url: str = os.environ["BASE_URL"]
     kms: KMSConfig = KMSConfig(
         key_ring_id="ap_key_ring",
         key_id="apbot_key_rsa_pkcs15_sha256",
