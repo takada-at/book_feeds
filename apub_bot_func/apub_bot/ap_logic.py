@@ -4,6 +4,8 @@ from typing import Dict
 from urllib.parse import urlparse
 import base64
 import concurrent.futures
+import hashlib
+import json
 
 from apub_bot import ap_object, config, gcp, mongodb
 from apub_bot.sig import InjectableSigner
@@ -45,7 +47,7 @@ def send_note(follower, create_activity):
     }
     headers = sign_header("POST", netloc.path, headers)
     response = requests.post(actor_data["inbox"], json=create_activity, headers=headers)
-    print(response)
+    print(response, response.content)
 
 
 def handle_follow(request_data: Dict):
@@ -79,23 +81,26 @@ def accept_follow(actor_data: Dict, request_data: Dict):
     request_json = ap_object.get_accept(request_data)
     # sign header
     netloc = urlparse(actor_data["inbox"])
+    digest = hashlib.sha256(json.dumps(request_json)).digest()
     headers = {
-        "Date": ap_object.format_datetime(datetime.now())
+        "Host": netloc.hostname,
+        "Date": ap_object.format_datetime(datetime.now()),
+        "Digest": digest
     }
-    headers = sign_header("POST", netloc.path, headers)
+    headers = sign_header("POST", netloc.path, headers, ['(request-target)', 'host', 'date', 'digest'])
     headers["Content-Type"] = "application/activity+json"
     headers["Accept"] = "application/activity+json"
     response = requests.post(actor_data["inbox"], json=request_json, headers=headers)
     print(response)
 
 
-def sign_header(method: str, path: str, headers: Dict):
+def sign_header(method: str, path: str, headers: Dict, required_headers):
     conf = config.get_config()
     bot_id = conf.bot_id
     public_key = gcp.get_public_key(conf.kms.key_ring_id, conf.kms.key_id, "1")
     signer = InjectableSigner(bot_id, public_key.pem.encode("utf-8"),
                               algorithm="rsa-sha256",
-                              headers=['(request-target)', 'date'],
+                              headers=required_headers,
                               sign_header="signature",
                               sign_func=sign_func)
     return signer.sign(headers=headers, method=method, path=path)
