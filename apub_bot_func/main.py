@@ -1,8 +1,11 @@
 import json
+import logging
 import os
 from urllib.parse import urlparse
 from flask import Flask, Response, request
 from apub_bot import ap_logic, ap_object, config, mongodb
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 
 app = Flask(__name__)
@@ -34,7 +37,7 @@ def inbox():
         try:
             ap_logic.handle_follow(data)
         except Exception as e:
-            print(e)
+            logging.info('General exception noted.', exc_info=True)
             return Response(status=500)
         return Response(status=200)
     elif data["type"] == "Undo":
@@ -42,7 +45,7 @@ def inbox():
             if data["object"]["type"] == "Follow":
                 ap_logic.handle_unfollow(data)
         except Exception as e:
-            print(e)
+            logging.info('General exception noted.', exc_info=True)
             return Response(status=500)
         return Response(status=200)
     return None
