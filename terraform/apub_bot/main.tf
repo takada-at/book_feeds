@@ -41,6 +41,7 @@ resource "google_cloud_run_v2_service" "default" {
   ingress = "INGRESS_TRAFFIC_ALL"
 
   template {
+    service_account = google_service_account.default.email
     containers {
       image = "us-central1-docker.pkg.dev/${var.project_name}/docker-repos/apub_bot"
       env {
@@ -49,7 +50,7 @@ resource "google_cloud_run_v2_service" "default" {
       }
       env {
         name = "BASE_URL"
-        value = "https://apub-bot1-46e33xglnq-uc.a.run.app"
+        value = "https://apub-bot1-46e33xglnq-uc.a.run.app/"
       }
       env {
         name = "BOT_ID"
