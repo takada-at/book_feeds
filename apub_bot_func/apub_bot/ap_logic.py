@@ -33,6 +33,7 @@ def create_note(content: str):
             futures.append(future)
         for future in concurrent.futures.as_completed(futures):
             result = future.result()
+            print(result)
 
 
 def send_note_wraper(args):
@@ -57,6 +58,7 @@ def send_note(follower, create_activity):
     headers["Accept"] = "application/activity+json"
     response = requests.post(actor_data["inbox"], json=create_activity, headers=headers)
     print(response, response.json())
+    return response
 
 
 def handle_follow(request_data: Dict):
