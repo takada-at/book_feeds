@@ -42,12 +42,17 @@ def send_note(follower, create_activity):
     actor = follower["actor"]
     actor_data = get_actor_data(actor)
     netloc = urlparse(actor_data["inbox"])
+    digest = hashlib.sha256(json.dumps(create_activity).encode("utf-8")).digest()
     headers = {
-        "Date": datetime.now().isoformat()
+        "Host": netloc.hostname,
+        "Date": ap_object.get_now(),
+        "Digest": digest
     }
-    headers = sign_header("POST", netloc.path, headers)
+    headers = sign_header("POST", netloc.path, headers, ['(request-target)', 'host', 'date', 'digest'])
+    headers["Content-Type"] = "application/activity+json"
+    headers["Accept"] = "application/activity+json"
     response = requests.post(actor_data["inbox"], json=create_activity, headers=headers)
-    print(response, response.content)
+    print(response, response.json())
 
 
 def handle_follow(request_data: Dict):
@@ -70,7 +75,7 @@ def get_actor_data(actor: str):
     response = requests.get(actor, headers={
         "Accept": "application/activity+json"
     })
-    print(response, response.json)
+    print(response, response.json())
     actor_data = response.json()
     for key in ["id", "preferredUsername", "inbox"]:
         assert key in actor_data
@@ -84,14 +89,14 @@ def accept_follow(actor_data: Dict, request_data: Dict):
     digest = hashlib.sha256(json.dumps(request_json).encode("utf-8")).digest()
     headers = {
         "Host": netloc.hostname,
-        "Date": ap_object.format_datetime(datetime.now()),
+        "Date": ap_object.get_now(),
         "Digest": digest
     }
     headers = sign_header("POST", netloc.path, headers, ['(request-target)', 'host', 'date', 'digest'])
     headers["Content-Type"] = "application/activity+json"
     headers["Accept"] = "application/activity+json"
     response = requests.post(actor_data["inbox"], json=request_json, headers=headers)
-    print(response, response.json)
+    print(response, response.json())
 
 
 def sign_header(method: str, path: str, headers: Dict, required_headers):

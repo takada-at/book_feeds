@@ -5,9 +5,13 @@ from typing import Dict
 from apub_bot import config, gcp
 
 
+def get_now():
+    return format_datetime(datetime.now(tz=timezone.utc))
+
+
 def format_datetime(datetime_obj: datetime) -> str:
     # return datetime_obj.isoformat()[:19] + "Z"
-    return datetime_obj.isoformat()
+    return datetime_obj.strftime("%a, %d %b %Y %H:%M:%S %Z")
 
 
 def get_public_key():
