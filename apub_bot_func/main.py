@@ -22,7 +22,7 @@ def note(uuid: str):
     return Response(json.dumps(response), headers={'Content-Type': 'application/activity+json'})
 
 
-@app.route("/inbox")
+@app.route("/inbox", methods=["GET", "POST"])
 def inbox():
     if request.headers.get("Content-Type") != "application/activity+json":
         return Response(status=400)
