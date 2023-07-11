@@ -42,7 +42,7 @@ def do_openai_api(df):
 - これらの小説を以下のカテゴリーに分類しなさい。
 
 カテゴリは以下から選びなさい。
-ミステリ、ライトノベル、ホラー、SF、ファンタジー、時代小説、戦記もの、児童向け、恋愛小説、官能小説、純文学、その他
+ミステリ、ライトノベル、ホラー、SF、ファンタジー、時代小説、戦争もの、児童向け、恋愛小説、官能小説、純文学、その他
 
 ## OUTPUT FORMAT
 以下のフォーマット以外のものは出力しないでください。
@@ -88,7 +88,7 @@ def check_result(result, target):
         line = line.strip()
         if not line:
             continue
-        return_values.append(line.split(".")[-1])
+        return_values.append(line.split(".")[-1].strip())
     assert len(return_values) == len(target)
     return return_values
 

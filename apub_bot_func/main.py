@@ -35,7 +35,7 @@ def hook():
     data = request.json
     logger.info(data)
     ap_logic.create_note(data["content"])
-    return Response(json.dump({"result": "ok"}), headers={'Content-Type': 'application/json'})
+    return Response(json.dumps({"result": "ok"}), headers={'Content-Type': 'application/json'})
 
 
 @app.route("/inbox", methods=["GET", "POST"])
