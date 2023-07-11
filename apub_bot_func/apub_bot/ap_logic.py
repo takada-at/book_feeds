@@ -113,7 +113,7 @@ def sign_header(method: str, path: str, headers: Dict, required_headers):
 def sign_func(message: bytes):
     conf = config.get_config()
     sig = gcp.sign_asymmetric(conf.kms.key_ring_id, conf.kms.key_id, conf.kms.version, message)
-    return base64.b64encode(sig.signature).decode("ascii")
+    return base64.b64encode(sig.signature)
 
 
 def find_note(uuid: str):
