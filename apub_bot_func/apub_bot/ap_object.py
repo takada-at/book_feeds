@@ -10,6 +10,9 @@ def get_now():
 
 
 def format_datetime(datetime_obj: datetime) -> str:
+    if datetime_obj.tzinfo is None:
+        datetime_obj = datetime_obj.replace(tzinfo=timezone.utc)
+
     # return datetime_obj.isoformat()[:19] + "Z"
     return datetime_obj.strftime("%a, %d %b %Y %H:%M:%S %Z").replace("UTC", "GMT")
 
