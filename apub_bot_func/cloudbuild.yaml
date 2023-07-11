@@ -16,7 +16,7 @@ steps:
    - '--service-account'
    - 'apub-bot-account@peak-bit-229907.iam.gserviceaccount.com'
    - '--set-env-vars'
-   - 'PROJECT_NAME=${PROJECT_ID},BASE_URL=https://apub-bot1-46e33xglnq-uc.a.run.app/,BOT_ID=bookbot,BOT_NAME="新刊犬",MONGODB_DATABASE=ap_bot_test'
+   - 'PROJECT_NAME=${PROJECT_ID},BASE_URL=https://apub-bot1-46e33xglnq-uc.a.run.app/,BOT_ID=bookbot,BOT_NAME=新刊犬,MONGODB_DATABASE=ap_bot_test'
 
 images:
 - 'us-central1-docker.pkg.dev/${PROJECT_ID}/docker-repos/apub_bot:latest'
