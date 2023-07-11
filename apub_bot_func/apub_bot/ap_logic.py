@@ -95,7 +95,7 @@ def accept_follow(actor_data: Dict, request_data: Dict):
     print(request_json)
     # sign header
     netloc = urlparse(actor_data["inbox"])
-    digest = get_digest(request_data)
+    digest = get_digest(request_json)
     headers = {
         "Host": netloc.hostname,
         "Date": ap_object.get_now(),
