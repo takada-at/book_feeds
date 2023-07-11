@@ -27,13 +27,15 @@ def create_note(content: str):
     note = ap_object.insert_note(db, content)
     create_activity = ap_object.get_note_create_activity(note)
     futures = []
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        for follower in db["follower"].find():
-            future = executor.submit(send_note_wraper, (follower, create_activity))
-            futures.append(future)
-        for future in concurrent.futures.as_completed(futures):
-            result = future.result()
-            print(result)
+    for follower in db["follower"].find():
+        send_note_wraper((follower, create_activity))
+    # with concurrent.futures.ThreadPoolExecutor() as executor:
+    #    for follower in db["follower"].find():
+    #        future = executor.submit(send_note_wraper, (follower, create_activity))
+    #        futures.append(future)
+    #    for future in concurrent.futures.as_completed(futures):
+    #        result = future.result()
+    #        print(result)
 
 
 def send_note_wraper(args):
