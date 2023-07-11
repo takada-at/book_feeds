@@ -91,7 +91,7 @@ def accept_follow(actor_data: Dict, request_data: Dict):
     headers["Content-Type"] = "application/activity+json"
     headers["Accept"] = "application/activity+json"
     response = requests.post(actor_data["inbox"], json=request_json, headers=headers)
-    print(response)
+    print(response, response.content)
 
 
 def sign_header(method: str, path: str, headers: Dict, required_headers):

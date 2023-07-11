@@ -33,7 +33,8 @@ def inbox():
     elif data["type"] == "Follow":
         try:
             ap_logic.handle_follow(data)
-        except:
+        except Exception as e:
+            print(e)
             return Response(status=500)
         return Response(status=200)
     elif data["type"] == "Undo":
