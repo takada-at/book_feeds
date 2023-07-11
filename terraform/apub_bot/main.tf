@@ -76,3 +76,11 @@ resource "google_cloud_run_v2_service_iam_binding" "default" {
     "allUsers"
   ]
 }
+
+resource "google_cloud_run_v2_service_iam_member" "member" {
+  project = google_cloud_run_v2_service.default.project
+  location = google_cloud_run_v2_service.default.location
+  name = google_cloud_run_v2_service.default.name
+  role = "roles/run.developer"
+  member = "serviceAccount:930396250237-compute@developer.gserviceaccount.com"
+}
