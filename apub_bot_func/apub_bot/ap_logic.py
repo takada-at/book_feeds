@@ -46,7 +46,7 @@ def send_note(follower, create_activity):
     headers = {
         "Host": netloc.hostname,
         "Date": ap_object.get_now(),
-        "Digest": digest
+        "Digest": f"sha-256={digest}"
     }
     headers = sign_header("POST", netloc.path, headers, ['(request-target)', 'host', 'date', 'digest'])
     headers["Content-Type"] = "application/activity+json"
@@ -90,7 +90,7 @@ def accept_follow(actor_data: Dict, request_data: Dict):
     headers = {
         "Host": netloc.hostname,
         "Date": ap_object.get_now(),
-        "Digest": digest
+        "Digest": f"sha-256={digest}"
     }
     headers = sign_header("POST", netloc.path, headers, ['(request-target)', 'host', 'date', 'digest'])
     headers["Content-Type"] = "application/activity+json"
