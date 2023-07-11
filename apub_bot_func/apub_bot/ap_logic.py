@@ -42,11 +42,13 @@ def send_note(follower, create_activity):
     actor = follower["actor"]
     actor_data = get_actor_data(actor)
     netloc = urlparse(actor_data["inbox"])
+    digest = hashlib.sha256(json.dumps(create_activity).encode("utf-8")).digest()
     headers = {
         "Host": netloc.hostname,
         "Date": ap_object.get_now(),
+        "Digest": digest
     }
-    headers = sign_header("POST", netloc.path, headers, ['(request-target)', 'host', 'date'])
+    headers = sign_header("POST", netloc.path, headers, ['(request-target)', 'host', 'date', 'digest'])
     headers["Content-Type"] = "application/activity+json"
     headers["Accept"] = "application/activity+json"
     response = requests.post(actor_data["inbox"], json=create_activity, headers=headers)
@@ -83,11 +85,13 @@ def accept_follow(actor_data: Dict, request_data: Dict):
     request_json = ap_object.get_accept(request_data)
     # sign header
     netloc = urlparse(actor_data["inbox"])
+    digest = hashlib.sha256(json.dumps(request_json).encode("utf-8")).digest()
     headers = {
         "Host": netloc.hostname,
         "Date": ap_object.get_now(),
+        "Digest": digest
     }
-    headers = sign_header("POST", netloc.path, headers, ['(request-target)', 'host', 'date'])
+    headers = sign_header("POST", netloc.path, headers, ['(request-target)', 'host', 'date', 'digest'])
     headers["Content-Type"] = "application/activity+json"
     headers["Accept"] = "application/activity+json"
     response = requests.post(actor_data["inbox"], json=request_json, headers=headers)
