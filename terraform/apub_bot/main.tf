@@ -84,3 +84,9 @@ resource "google_cloud_run_v2_service_iam_member" "member" {
   role = "roles/run.developer"
   member = "serviceAccount:930396250237@cloudbuild.gserviceaccount.com"
 }
+
+resource "google_service_account_iam_member" "member" {
+  service_account_id = google_service_account.default.name
+  role = "roles/iam.serviceAccountUser"
+  member = "serviceAccount:930396250237@cloudbuild.gserviceaccount.com"
+}
