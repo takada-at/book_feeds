@@ -41,7 +41,7 @@ def inbox():
         try:
             if data["object"]["type"] == "Follow":
                 ap_logic.handle_unfollow(data)
-        except:
+        except Exception as e:
             print(e)
             return Response(status=500)
         return Response(status=200)

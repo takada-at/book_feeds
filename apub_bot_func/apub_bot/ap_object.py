@@ -11,7 +11,7 @@ def get_now():
 
 def format_datetime(datetime_obj: datetime) -> str:
     # return datetime_obj.isoformat()[:19] + "Z"
-    return datetime_obj.strftime("%a, %d %b %Y %H:%M:%S %Z")
+    return datetime_obj.strftime("%a, %d %b %Y %H:%M:%S %Z").replace("UTC", "GMT")
 
 
 def get_public_key():
