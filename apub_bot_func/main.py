@@ -28,7 +28,6 @@ def inbox():
         return Response(status=400)
     data = request.json
     print(data)
-    print(data)
     if type(data) != dict or "type" not in data:
         return Response(status=400)
     elif data["type"] == "Follow":
@@ -43,6 +42,7 @@ def inbox():
             if data["object"]["type"] == "Follow":
                 ap_logic.handle_unfollow(data)
         except:
+            print(e)
             return Response(status=500)
         return Response(status=200)
 
