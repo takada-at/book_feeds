@@ -91,6 +91,7 @@ def convert_note(dic):
         ]        
     }
 
+
 def get_note_create_activity(note):
     conf = config.get_config()
     bot_id = conf.bot_id

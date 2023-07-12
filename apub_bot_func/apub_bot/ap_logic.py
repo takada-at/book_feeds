@@ -40,7 +40,7 @@ def create_note(content: str):
 
 def send_note_wraper(args):
     try:
-        send_note(args[0], args[1])
+        return send_note(args[0], args[1])
     except:
         logging.info('General exception noted.', exc_info=True)
 
@@ -48,18 +48,7 @@ def send_note_wraper(args):
 def send_note(follower, create_activity):
     actor = follower["actor"]
     actor_data = get_actor_data(actor)
-    netloc = urlparse(actor_data["inbox"])
-    digest = get_digest(create_activity)
-    headers = {
-        "Host": netloc.hostname,
-        "Date": ap_object.get_now(),
-        "Digest": f"sha-256={digest}"
-    }
-    headers = sign_header("POST", netloc.path, headers, ['(request-target)', 'host', 'date', 'digest'])
-    headers["Content-Type"] = "application/activity+json"
-    headers["Accept"] = "application/activity+json"
-    response = requests.post(actor_data["inbox"], json=create_activity, headers=headers)
-    print(response, response.json())
+    response = send_request(actor_data["inbox"], create_activity)
     return response
 
 
@@ -67,7 +56,7 @@ def handle_follow(request_data: Dict):
     actor = request_data["actor"]
     actor_data = get_actor_data(actor)
     db = mongodb.get_database()
-    ap_object.insert_follower(db, actor_data)
+    ap_object.insert_follower(db, {"actor": actor})
     accept_follow(actor_data, request_data)
 
 
@@ -106,9 +95,12 @@ def get_digest(data: Dict):
 def accept_follow(actor_data: Dict, request_data: Dict):
     request_json = ap_object.get_accept(request_data)
     print(request_json)
-    # sign header
-    netloc = urlparse(actor_data["inbox"])
-    digest = get_digest(request_json)
+    send_request(actor_data["inbox"], request_json)
+
+
+def send_request(url: str, data: Dict):
+    netloc = urlparse(url)
+    digest = get_digest(data)
     headers = {
         "Host": netloc.hostname,
         "Date": ap_object.get_now(),
@@ -118,8 +110,9 @@ def accept_follow(actor_data: Dict, request_data: Dict):
     headers["Content-Type"] = "application/activity+json"
     headers["Accept"] = "application/activity+json"
     print(headers)
-    response = requests.post(actor_data["inbox"], json=request_json, headers=headers)
+    response = requests.post(url, json=data, headers=headers)
     print(response, response.content)
+    return response
 
 
 def sign_header(method: str, path: str, headers: Dict, required_headers):
