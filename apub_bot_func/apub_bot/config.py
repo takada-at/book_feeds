@@ -36,7 +36,7 @@ class Config(NamedTuple):
 
     @property
     def summary(self):
-        root = Path(Path(__file__).parent / "..").resolve
+        root = Path(Path(__file__).parent / "..").resolve()
         with (root / "summary.txt") as fp:
             return fp.read()
 
