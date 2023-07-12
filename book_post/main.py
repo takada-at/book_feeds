@@ -66,9 +66,14 @@ def get_todays_book_post() -> str:
     items = []
     datestr = today.strftime("%Y年%m月%d日")
     for i, row in data.iterrows():
-        item = f"{row['authors']}『{row['title']}』{row['publisher']}\n{row['link']}"
+        link = link_to_a(row['link'])
+        item = f"{row['authors']}『{row['title']}』{row['publisher']}\n{link}"
         items.append(item)
     return f"本日{datestr}出る本\n" + "\n\n".join(items)
+
+
+def link_to_a(url: str):
+    return f"<a href={url}>{url}</a>"
 
 
 def get_random_book_post(enable_update: bool = False) -> str:
@@ -77,7 +82,7 @@ def get_random_book_post(enable_update: bool = False) -> str:
     author = book_data["authors"]
     title = book_data["title"]
     description = book_data["description"]
-    link = book_data["link"]
+    link = link_to_a(book_data["link"])
     publisher = book_data["publisher"]
     date_str = date.fromisoformat(book_data["publish_date"]).strftime("%Y年%m月%d日")
     post = f"""{date_str}発売予定

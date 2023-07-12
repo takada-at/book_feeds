@@ -198,7 +198,7 @@ resource "google_storage_bucket_iam_member" "binding" {
 resource "google_cloud_scheduler_job" "post1" {
   name             = "book-post-schedule1"
   description      = "book-post-schedule1"
-  schedule         = "* 9 * * *"
+  schedule         = "0 9 * * *"
   time_zone        = "Asia/Tokyo"
 
   http_target {
@@ -219,7 +219,7 @@ resource "google_cloud_scheduler_job" "post1" {
 resource "google_cloud_scheduler_job" "post2" {
   name             = "book-post-schedule2"
   description      = "book-post-schedule2"
-  schedule         = "* 9,12,17,20,22 * * *"
+  schedule         = "14 9,12,17,20,22 * * *"
   time_zone        = "Asia/Tokyo"
 
   http_target {
