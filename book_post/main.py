@@ -8,6 +8,8 @@ import functions_framework
 import os
 import pandas as pd
 import random
+import requests
+
 
 PROJECT_NAME = os.environ["PROJECT_NAME"]
 bigquery_client = bigquery.Client(project=PROJECT_NAME)
@@ -15,7 +17,7 @@ bigquery_client = bigquery.Client(project=PROJECT_NAME)
 
 def get_client():
     uri = "mongodb+srv://ap_bot:{password}@serverlessinstance0.fzzbd4i.mongodb.net/?retryWrites=true&w=majority"
-    password = open(os.environ["MONGODB_PASSWORD_FILE"]).read().strip()
+    password = open(os.environ["MONGODB_PASSWORD_PATH"]).read().strip()
     client = MongoClient(uri.format(password=password), server_api=ServerApi('1'))
     try:
         client.admin.command('ping')
@@ -35,6 +37,7 @@ def fetch(sql: str, start_date: date, end_date: date) -> pd.DataFrame:
         ]
     )
     df = bigquery_client.query(sql, job_config=job_config).to_dataframe()
+    df["publish_date"] = df["publish_date"].map(lambda x: x.isoformat())
     return df
 
 
@@ -70,6 +73,7 @@ def get_todays_book_post() -> str:
 
 def get_random_book_post(enable_update: bool = False) -> str:
     book_data = get_random_book(enable_update=enable_update)
+    print(book_data)
     author = book_data["authors"]
     title = book_data["title"]
     description = book_data["description"]
@@ -89,7 +93,7 @@ def get_random_book(enable_update: bool = True):
     enddate = today + timedelta(days=30)
     posted_books = get_db_data(mongodb_client)
     # publish_dateが今日以降のものだけを抽出
-    posted_books = [d for d in posted_books if d["publish_date"] >= today]
+    posted_books = [d for d in posted_books if d["publish_date"] >= today.isoformat()]
     posted_isbn = {d["isbn"] for d in posted_books}
     data = fetch_new_books(today, enddate)
     entries = []
@@ -118,9 +122,21 @@ def handle_request(request):
     print(json_data)
     mode = json_data.get("mode", "random")
     if mode == "random":
-        post = get_random_book_post(enable_update=False)
+        post = get_random_book_post(enable_update=True)
     elif mode == "today":
         post = get_todays_book_post()
     else:
         return "Invalid mode", 400
-    print(post)
+
+    secret_token = open(os.environ["SECRET_TOKEN_PATH"]).read().strip()
+    data = {
+        "content": post
+    }
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": secret_token
+    }
+    resp = requests.post(os.environ["POST_URL"], headers=headers, json=data)
+    print(resp.content)
+    return "OK"
+

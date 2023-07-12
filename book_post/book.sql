@@ -6,7 +6,7 @@ WITH base AS (
     publish_date BETWEEN @start_date AND @end_date
   GROUP BY 1
 )
-SELECT publish_date, base.title, c.genre, publisher, c_code, description, link
+SELECT isbn, publish_date, authors, base.title, c.genre, publisher, c_code, description, link
 FROM `peak-bit-229907.book_feed.external_categorized` AS c
 LEFT JOIN base USING (isbn)
 WHERE 

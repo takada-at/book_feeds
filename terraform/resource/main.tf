@@ -14,7 +14,6 @@ resource "google_project_iam_binding" "bigquery" {
   members = [
     "serviceAccount:${google_service_account.default.email}"
   ]
-  
 }
 
 resource "google_storage_bucket" "data_storage" {
