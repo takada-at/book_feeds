@@ -105,7 +105,7 @@ def get_note_create_activity(note):
         "actor": bot_id,
         "published": note_sub["published"],
         "to": note_sub["to"],
-        "note": note_sub,
+        "object": note_sub,
     }
 
 

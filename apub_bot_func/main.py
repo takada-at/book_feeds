@@ -15,6 +15,7 @@ app = Flask(__name__)
 @app.route('/user')
 @app.route('/user/<name>')
 def person(name: str = ""):
+    print(request.headers)
     response = ap_object.get_person()
     return Response(json.dumps(response), headers={'Content-Type': 'application/activity+json'})
 
