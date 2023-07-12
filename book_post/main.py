@@ -69,7 +69,7 @@ def get_todays_book_post() -> str:
         link = link_to_a(row['link'])
         item = f"{row['authors']}『{row['title']}』{row['publisher']}\n{link}"
         items.append(item)
-    return f"本日{datestr}出る本\n" + "\n\n".join(items)
+    return f"{datestr}\n本日出る本\n" + "\n\n".join(items)
 
 
 def link_to_a(url: str):
