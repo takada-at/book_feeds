@@ -16,6 +16,8 @@ WHERE
      OR
      STRPOS(c.genre, "SF") > 0
      OR
-     base.publisher IN ("早川書房", "東京創元社")
+     STRPOS(c.genre, "ファンタジー") > 0 AND SUBSTR(c_code, 3, 2) = "97"
+     OR
+     base.publisher IN ("早川書房", "東京創元社", "国書刊行会")
     )
 ORDER BY publish_date
