@@ -63,7 +63,7 @@ resource "google_cloud_run_v2_service" "default" {
       }
       env {
         name = "BOT_NAME"
-        value = "bookbot"
+        value = "新刊犬"
       }
       env {
         name = "MONGODB_DATABASE"

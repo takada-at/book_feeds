@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Dict, NamedTuple
 import os
 
@@ -32,6 +33,12 @@ class Config(NamedTuple):
 
     def get_link(self, path: str):
         return self.base_url + path
+
+    @property
+    def summary(self):
+        root = Path(Path(__file__).parent / "..").resolve
+        with (root / "summary.txt") as fp:
+            return fp.read()
 
     @property
     def bot_id(self):
