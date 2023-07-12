@@ -122,7 +122,6 @@ def categorize_date(target_date: date, bucket_name: str):
     return dict(count=len(result), date=date_str)
 
 
-
 @functions_framework.http
 def handle_request(request):
     bucket_name = os.environ.get("BUCKET_NAME")

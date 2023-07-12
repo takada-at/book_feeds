@@ -3,7 +3,7 @@ WITH base AS (
   ANY_VALUE(c_code) AS c_code
   FROM`peak-bit-229907.book_feed.external_new_books`
   WHERE
-    date BETWEEN @start_date AND @end_date
+    publish_date BETWEEN @start_date AND @end_date
   GROUP BY 1
 )
 SELECT publish_date, base.title, c.genre, publisher, c_code, description, link
