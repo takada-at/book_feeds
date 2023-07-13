@@ -7,6 +7,7 @@ import google.api_core.exceptions
 import gzip
 import json
 import os
+import pytz
 import requests
 import re
 import tempfile
@@ -148,8 +149,13 @@ def get_url(date_int: int) -> str:
     return url
 
 
+def get_today():
+    tz = pytz.timezone('Asia/Tokyo')
+    return datetime.now(tz).date()
+    
+
 def fetch_feed_by_date(target_date: date):
-    today = datetime.today().date()
+    today = get_today()
     days = (target_date - today).days
     url = get_url(days)
     print(url)
@@ -210,6 +216,6 @@ def handle_request(request):
     json_data = request.get_json()
     print(json_data)
     days = json_data.get("days", 0)
-    target_date = datetime.today().date() + timedelta(days=days)
+    target_date = get_today() + timedelta(days=days)
     result = fetch_and_save(target_date, bucket_name)
     return dict(result="ok", **result)

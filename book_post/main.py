@@ -38,6 +38,7 @@ def fetch(sql: str, start_date: date, end_date: date) -> pd.DataFrame:
     )
     df = bigquery_client.query(sql, job_config=job_config).to_dataframe()
     df["publish_date"] = df["publish_date"].map(lambda x: x.isoformat())
+    print(df)
     return df
 
 
@@ -67,6 +68,7 @@ def get_todays_book_post() -> str:
     datestr = today.strftime("%Y年%m月%d日")
     for i, row in data.iterrows():
         link = link_to_a(row['link'])
+        print(row)
         item = f"{row['authors']}『{row['title']}』{row['publisher']}\n{link}"
         items.append(item)
     return f"{datestr}\n本日出る本\n" + "\n\n".join(items)
@@ -132,16 +134,16 @@ def handle_request(request):
         post = get_todays_book_post()
     else:
         return "Invalid mode", 400
-
-    secret_token = open(os.environ["SECRET_TOKEN_PATH"]).read().strip()
+    print(post)
+    # secret_token = open(os.environ["SECRET_TOKEN_PATH"]).read().strip()
     data = {
         "content": post
     }
     headers = {
         "Content-Type": "application/json",
-        "Authorization": secret_token
+    #    "Authorization": secret_token
     }
-    resp = requests.post(os.environ["POST_URL"], headers=headers, json=data)
-    print(resp.content)
+    # resp = requests.post(os.environ["POST_URL"], headers=headers, json=data)
+    # print(resp.content)
     return "OK"
 
