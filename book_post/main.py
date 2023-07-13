@@ -69,6 +69,8 @@ def get_todays_book_post() -> str:
     for i, row in data.iterrows():
         link = link_to_a(row['link'])
         print(row)
+        if not row["title"]:
+            continue
         item = f"{row['authors']}『{row['title']}』{row['publisher']}\n{link}"
         items.append(item)
     return f"{datestr}\n本日出る本\n" + "\n\n".join(items)
@@ -135,15 +137,15 @@ def handle_request(request):
     else:
         return "Invalid mode", 400
     print(post)
-    # secret_token = open(os.environ["SECRET_TOKEN_PATH"]).read().strip()
+    secret_token = open(os.environ["SECRET_TOKEN_PATH"]).read().strip()
     data = {
         "content": post
     }
     headers = {
         "Content-Type": "application/json",
-    #    "Authorization": secret_token
+        "Authorization": secret_token
     }
-    # resp = requests.post(os.environ["POST_URL"], headers=headers, json=data)
-    # print(resp.content)
+    resp = requests.post(os.environ["POST_URL"], headers=headers, json=data)
+    print(resp.content)
     return "OK"
 
