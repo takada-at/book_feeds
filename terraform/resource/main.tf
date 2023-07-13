@@ -8,12 +8,10 @@ resource "google_service_account" "default" {
   display_name = "Book Service Account"
 }
 
-resource "google_project_iam_binding" "bigquery" {
+resource "google_project_iam_member" "bigquery" {
   project = var.project_name
   role = "roles/bigquery.jobUser"
-  members = [
-    "serviceAccount:${google_service_account.default.email}"
-  ]
+  member = "serviceAccount:${google_service_account.default.email}"
 }
 
 resource "google_storage_bucket" "data_storage" {
