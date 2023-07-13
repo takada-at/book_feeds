@@ -3,6 +3,7 @@ from google.cloud import bigquery
 from pathlib import Path
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
+import pytz
 from typing import Dict, List
 import functions_framework
 import os
@@ -62,7 +63,7 @@ def update_db(client: MongoClient, records: List[Dict]):
 
 
 def get_todays_book_post() -> str:
-    today = datetime.now().date()
+    today = get_today()
     data = fetch_new_books(today, today)
     items = []
     datestr = today.strftime("%Y年%m月%d日")
@@ -123,6 +124,11 @@ def get_random_book(enable_update: bool = True):
         }
         update_db(mongodb_client, posted_books + [new_data])
     return new_post
+
+
+def get_today():
+    tz = pytz.timezone('Asia/Tokyo')
+    return datetime.now(tz).date()
 
 
 @functions_framework.http
