@@ -6,6 +6,7 @@ import functions_framework
 import gzip
 import openai
 import os
+import pytz
 import tempfile
 
 
@@ -19,6 +20,7 @@ WHERE
   SUBSTR(c_code, 1, 1)!="9" AND SUBSTR(c_code, 3, 2) IN ("93", "97") AND description != ""
   AND date=@date
 """
+
 
 def upload_gcs(bucket_name: str, path: str, local_path):
     project = os.environ["PROJECT_NAME"]
@@ -122,12 +124,17 @@ def categorize_date(target_date: date, bucket_name: str):
     return dict(count=len(result), date=date_str)
 
 
+def get_today():
+    tz = pytz.timezone('Asia/Tokyo')
+    return datetime.now(tz).date()
+
+
 @functions_framework.http
 def handle_request(request):
     bucket_name = os.environ.get("BUCKET_NAME")
     json_data = request.get_json()
     print(json_data)
     days = json_data.get("days", 0)
-    target_date = datetime.today().date() + timedelta(days=days)
+    target_date = get_today() + timedelta(days=days)
     result = categorize_date(target_date, bucket_name)
     return dict(result="ok", **result)
