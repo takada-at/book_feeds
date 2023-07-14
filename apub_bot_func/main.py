@@ -62,7 +62,7 @@ def inbox():
             logging.info('General exception noted.', exc_info=True)
             return Response(status=500)
         return Response(status=200)
-    return Response(200)
+    return Response(status=200)
 
 
 @app.route("/outbox/")
