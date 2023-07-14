@@ -94,36 +94,29 @@ resource "google_cloud_run_service_iam_binding" "binding" {
 }
 
 resource "google_cloud_scheduler_job" "job1" {
-  name             = "fetch-book-feeds-daily1"
-  description      = "fetch-book-feeds-daily1"
-  schedule         = "14 0 * * *"
-  time_zone        = "Asia/Tokyo"
-
-  http_target {
-    http_method = "POST"
-    uri         = google_cloudfunctions2_function.function.service_config[0].uri
-    body        = base64encode("{\"days\": 7}")
-    headers = {
-      "Content-Type" = "application/json"
+  for_each = {
+    1 = {
+      schedule = "14 0 * * *"
+      days = 7
     }
-
-    oidc_token {
-      service_account_email = google_service_account.default.email
-      audience = google_cloudfunctions2_function.function.service_config[0].uri
+    2 = {
+      schedule = "24 0 * * *"
+      days = 14
+    }
+    3 = {
+      schedule = "34 0 * * *"
+      days = 30
     }
   }
-}
-
-resource "google_cloud_scheduler_job" "job2" {
-  name             = "fetch-book-feeds-daily2"
-  description      = "fetch-book-feeds-daily2"
-  schedule         = "24 0 * * *"
+  name             = "fetch-book-feeds-daily${each.key}"
+  description      = "fetch-book-feeds-daily${each.key}"
+  schedule         = each.value.schedule
   time_zone        = "Asia/Tokyo"
 
   http_target {
     http_method = "POST"
     uri         = google_cloudfunctions2_function.function.service_config[0].uri
-    body        = base64encode("{\"days\": 14}")
+    body        = base64encode("{\"days\": ${each.value.days}}")
     headers = {
       "Content-Type" = "application/json"
     }
@@ -258,36 +251,29 @@ resource "google_secret_manager_secret_iam_binding" "member" {
 }
 
 resource "google_cloud_scheduler_job" "job_categorize1" {
-  name             = "categorize-book-feeds-daily1"
-  description      = "categorize-book-feeds-daily1"
-  schedule         = "34 0 * * *"
-  time_zone        = "Asia/Tokyo"
-
-  http_target {
-    http_method = "POST"
-    uri         = google_cloudfunctions2_function.categorize.service_config[0].uri
-    body        = base64encode("{\"days\": 7}")
-    headers = {
-      "Content-Type" = "application/json"
+  for_each = {
+    1 = {
+      schedule = "40 0 * * *"
+      days = 7
     }
-
-    oidc_token {
-      service_account_email = google_service_account.default.email
-      audience = google_cloudfunctions2_function.categorize.service_config[0].uri
+    2 = {
+      schedule = "50 0 * * *"
+      days = 14
+    }
+    3 = {
+      schedule = "0 1 * * *"
+      days = 30
     }
   }
-}
-
-resource "google_cloud_scheduler_job" "job_categorize2" {
-  name             = "categorize-book-feeds-daily2"
-  description      = "categorize-book-feeds-daily2"
-  schedule         = "04 1 * * *"
+  name             = "categorize-book-feeds-daily${each.key}"
+  description      = "categorize-book-feeds-daily${each.key}"
+  schedule         = each.value.schedule
   time_zone        = "Asia/Tokyo"
 
   http_target {
     http_method = "POST"
     uri         = google_cloudfunctions2_function.categorize.service_config[0].uri
-    body        = base64encode("{\"days\": 14}")
+    body        = base64encode("{\"days\": ${each.value.days}}")
     headers = {
       "Content-Type" = "application/json"
     }

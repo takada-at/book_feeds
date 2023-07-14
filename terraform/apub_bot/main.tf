@@ -219,7 +219,7 @@ resource "google_cloud_scheduler_job" "post1" {
 resource "google_cloud_scheduler_job" "post2" {
   name             = "book-post-schedule2"
   description      = "book-post-schedule2"
-  schedule         = "14 9,12,17,20,22 * * *"
+  schedule         = "14 9,12,15,17,20,22,23 * * *"
   time_zone        = "Asia/Tokyo"
 
   http_target {

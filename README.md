@@ -11,4 +11,6 @@ Cloud Run用コード
 - apub_bot_func: ActivityPubボット。follow/unfollowの受け入れ機能と、投稿機能のみ。
 
 
-terraform以下にインフラ構築用コード。
+インフラ構築用コード
+
+- terraform: インフラ構築用
