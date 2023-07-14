@@ -55,6 +55,11 @@
     "mode": "NULLABLE"
   },
   {
+    "name": "label",
+    "type": "string",
+    "mode": "NULLABLE"
+  },
+  {
     "name": "author_data",
     "type": "RECORD",
     "mode": "REPEATED",

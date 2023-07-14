@@ -29,11 +29,12 @@ class HanmotoData(NamedTuple):
         keyword = self.openbd["keyword"] if self.openbd else ""
         c_code = self.openbd["c_code"] if self.openbd else ""
         author_data = self.openbd["authors"] if self.openbd else []
+        label = self.openbd["label"] if self.openbd else ""
         return dict(id=self.id, raw_title=self.raw_title, title=self.title,
                     authors=self.authors, publisher=self.publisher,
                     publish_date=self.publish_date, link=self.link,
                     isbn=self.isbn, description=description, keywords=keyword, c_code=c_code,
-                    author_data=author_data)
+                    author_data=author_data, label=label)
 
 
 def upload_gcs(bucket_name: str, path: str, local_path):
@@ -57,6 +58,17 @@ def download_gcs(bucket_name: str, path: str) -> str:
         return ""
 
 
+def get_label(onix):
+    label = None
+    if "Collection" in onix["DescriptiveDetail"] and onix["DescriptiveDetail"]["Collection"].get("CollectionType") == "10":
+        collection = onix["DescriptiveDetail"]["Collection"]
+        if "TitleDetail" in collection:
+            for elm in collection["TitleDetail"].get("TitleElement", []):
+                if elm["TitleElementLevel"] == "02":
+                    return elm["TitleText"]["content"]
+    return label
+
+
 def parse_openbd(record):
     onix = record["onix"]
     title = onix["DescriptiveDetail"]["TitleDetail"]["TitleElement"]["TitleText"]["content"]
@@ -66,6 +78,7 @@ def parse_openbd(record):
             description = collateral["Text"]
             break
     authors = onix["DescriptiveDetail"]["Contributor"]
+    label = get_label(onix)
     keyword = ""
     c_code = ""
     if "Subject" in onix["DescriptiveDetail"]:
@@ -82,6 +95,7 @@ def parse_openbd(record):
         subjects=onix["DescriptiveDetail"].get("Subject"),
         keyword=keyword,
         c_code=c_code,
+        label=label,
     )
 
 
