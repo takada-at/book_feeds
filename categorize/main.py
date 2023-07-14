@@ -14,7 +14,7 @@ PROJECT_NAME = os.environ["PROJECT_NAME"]
 bigquery_client = bigquery.Client(PROJECT_NAME)
 secret_manager_client = secretmanager.SecretManagerServiceClient()
 storage_client = storage.Client(project=PROJECT_NAME)
-SQL = """SELECT isbn, raw_title, authors, title, publisher, description
+SQL = """SELECT isbn, raw_title, authors, title, publisher, description, label
 FROM book_feed.external_new_books
 WHERE
   SUBSTR(c_code, 1, 1)!="9" AND SUBSTR(c_code, 3, 2) IN ("93", "97") AND description != ""
@@ -58,7 +58,11 @@ def do_openai_api(df):
         title = row["title"]
         publisher = row["publisher"]
         description = row["description"].replace("\n", "\\n")
-        line = f"{i + 1}. {author}『{title}』{publisher}"
+        if row["label"]:
+            label = f"({row['label']})"
+        else:
+            label = ""
+        line = f"{i + 1}. {author}『{title}』{label}{publisher}"
         line += f"\n    \"{description}\""
         lines.append(line)
     books = "\n".join(lines)
