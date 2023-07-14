@@ -193,7 +193,6 @@ def get_new_book_cache(bucket_name: str, path: str, today: str):
 def fetch_and_save(target_date: date, bucket_name: str):
     date_str = target_date.isoformat()
     feed_data = tempfile.NamedTemporaryFile("wb")
-    cache_data = tempfile.NamedTemporaryFile("wb")
     count = 0
     with gzip.open(feed_data.name, "wb") as f:
         for b in fetch_feed(target_date):
@@ -201,8 +200,6 @@ def fetch_and_save(target_date: date, bucket_name: str):
             count += 1
     feed_data.flush()
     feed_data.seek(0)
-    cache_data.flush()
-    cache_data.seek(0)
     remote_path = f"new_books/date={date_str}/hanmoto.jsonl.gz"
     if count > 0:
         upload_gcs(bucket_name, remote_path, feed_data.name)

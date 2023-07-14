@@ -3,6 +3,7 @@ from google.cloud import bigquery
 from pathlib import Path
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
+import pytz
 from typing import Dict, List
 import functions_framework
 import os
@@ -62,13 +63,15 @@ def update_db(client: MongoClient, records: List[Dict]):
 
 
 def get_todays_book_post() -> str:
-    today = datetime.now().date()
+    today = get_today()
     data = fetch_new_books(today, today)
     items = []
     datestr = today.strftime("%Y年%m月%d日")
     for i, row in data.iterrows():
         link = link_to_a(row['link'])
         print(row)
+        if not row["title"]:
+            continue
         item = f"{row['authors']}『{row['title']}』{row['publisher']}\n{link}"
         items.append(item)
     return f"{datestr}\n本日出る本\n" + "\n\n".join(items)
@@ -123,6 +126,11 @@ def get_random_book(enable_update: bool = True):
     return new_post
 
 
+def get_today():
+    tz = pytz.timezone('Asia/Tokyo')
+    return datetime.now(tz).date()
+
+
 @functions_framework.http
 def handle_request(request):
     json_data = request.get_json()
@@ -135,15 +143,15 @@ def handle_request(request):
     else:
         return "Invalid mode", 400
     print(post)
-    # secret_token = open(os.environ["SECRET_TOKEN_PATH"]).read().strip()
+    secret_token = open(os.environ["SECRET_TOKEN_PATH"]).read().strip()
     data = {
         "content": post
     }
     headers = {
         "Content-Type": "application/json",
-    #    "Authorization": secret_token
+        "Authorization": secret_token
     }
-    # resp = requests.post(os.environ["POST_URL"], headers=headers, json=data)
-    # print(resp.content)
+    resp = requests.post(os.environ["POST_URL"], headers=headers, json=data)
+    print(resp.content)
     return "OK"
 
