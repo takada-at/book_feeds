@@ -57,9 +57,9 @@ def do_openai_api(df):
         author = row["authors"]
         title = row["title"]
         publisher = row["publisher"]
-        description = row["description"]
+        description = row["description"].replace("\n", "\\n")
         line = f"{i + 1}. {author}『{title}』{publisher}"
-        line += f"\n    {description}"
+        line += f"\n    \"{description}\""
         lines.append(line)
     books = "\n".join(lines)
     prompt = f"# BOOKS\n{books}"
@@ -71,6 +71,8 @@ def do_openai_api(df):
     # completion = openai.ChatCompletion.create(model="gpt-4", messages=prompt)
     completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", temperature=0, timeout=60,
                                               messages=messages)
+    print(prompt)
+    print(completion["choices"][0]["message"]["content"])
     return completion["choices"][0]["message"]["content"]
 
 
