@@ -4,7 +4,7 @@ from pathlib import Path
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 import pytz
-from typing import Dict, List
+from typing import Dict, List, Optional
 import functions_framework
 import os
 import pandas as pd
@@ -62,7 +62,7 @@ def update_db(client: MongoClient, records: List[Dict]):
     collection.insert_many(records)
 
 
-def get_todays_book_post() -> str:
+def get_todays_book_post() -> Optional[str]:
     today = get_today()
     data = fetch_new_books(today, today)
     items = []
@@ -74,6 +74,8 @@ def get_todays_book_post() -> str:
             continue
         item = f"{row['authors']}『{row['title']}』{row['publisher']}\n{link}"
         items.append(item)
+    if len(items) == 0:
+        return None
     return f"{datestr}\n本日出る本\n" + "\n\n".join(items)
 
 
@@ -143,6 +145,8 @@ def handle_request(request):
     else:
         return "Invalid mode", 400
     print(post)
+    if not post:
+        return "OK"
     secret_token = open(os.environ["SECRET_TOKEN_PATH"]).read().strip()
     data = {
         "content": post
