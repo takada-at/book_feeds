@@ -7,12 +7,27 @@ import concurrent.futures
 import hashlib
 import json
 import logging
+import re
 
 from apub_bot import ap_object, config, gcp, mongodb
 from apub_bot.sig import InjectableSigner
 
 
 logger = logging.getLogger(__name__)
+
+
+def handle_like(request_data: Dict):
+    object = request_data.get("object")
+    if not object:
+        return
+    note_id = object.split('/')[-1]
+    note = find_note(note_id)
+    line = note["content"].split('\n')[-1].strip()
+    match = re.match(line, "http://www\.hanmoto\.com/bd/isbn/(\d+)")
+    print(line, match)
+    result = match.group(1)
+    if result:
+        logger.info(json.dumps({"log_type": "like", "isbn": result}))
 
 
 def get_notes(page: int = 1):

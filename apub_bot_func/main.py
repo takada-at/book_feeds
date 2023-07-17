@@ -62,6 +62,13 @@ def inbox():
             logging.info('General exception noted.', exc_info=True)
             return Response(status=500)
         return Response(status=200)
+    elif data["type"] in ("Like", "Announce"):
+        try:
+            ap_logic.handle_like(data)
+        except Exception as e:
+            logging.info('General exception noted.', exc_info=True)
+            return Response(status=200)
+        return Response(status=200)
     return Response(status=200)
 
 
