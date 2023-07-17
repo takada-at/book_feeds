@@ -23,7 +23,7 @@ def handle_like(request_data: Dict):
     note_id = object.split('/')[-1]
     note = find_note(note_id)
     line = note["content"].strip().split('\n')[-1].strip()
-    match = re.match(line, ".*http://www\.hanmoto\.com/bd/isbn/(\d+).*")
+    match = re.match(".*http://www\.hanmoto\.com/bd/isbn/(\d+).*", line)
     print(line, match)
     if match and match.group(1):
         result = match.group(1)
