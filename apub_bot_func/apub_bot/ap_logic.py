@@ -22,11 +22,11 @@ def handle_like(request_data: Dict):
         return
     note_id = object.split('/')[-1]
     note = find_note(note_id)
-    line = note["content"].split('\n')[-1].strip()
+    line = note["content"].strip().split('\n')[-1].strip()
     match = re.match(line, "http://www\.hanmoto\.com/bd/isbn/(\d+)")
     print(line, match)
-    result = match.group(1)
-    if result:
+    if match and match.group(1):
+        result = match.group(1)
         logger.info(json.dumps({"log_type": "like", "isbn": result}))
 
 
