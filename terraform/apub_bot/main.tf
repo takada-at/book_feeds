@@ -236,3 +236,17 @@ resource "google_cloud_scheduler_job" "post2" {
     }
   }
 }
+
+resource "google_logging_project_sink" "log-sink" {
+  name        = "apbot-sink"
+  destination = "bigquery.googleapis.com/projects/${var.project_name}/datasets/book_feed"
+  filter      = "resource.type = cloud_run_revision AND resource.labels.service_name = \"${google_cloud_run_v2_service.default.name}\" AND resource.labels.location=\"${var.region}\" AND textPayload =~ \"\\\"log_type\\\": \\\"like\\\"\""
+
+  unique_writer_identity = true
+}
+
+resource "google_bigquery_dataset_iam_member" "log_sink" {
+  dataset_id = "book_feed"
+  role       = "roles/bigquery.dataOwner"
+  member     = google_logging_project_sink.log-sink.writer_identity
+}

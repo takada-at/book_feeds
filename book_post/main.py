@@ -137,9 +137,10 @@ def get_today():
 def handle_request(request):
     json_data = request.get_json()
     print(json_data)
+    dry_run = json_data.get("dryrun", False)
     mode = json_data.get("mode", "random")
     if mode == "random":
-        post = get_random_book_post(enable_update=True)
+        post = get_random_book_post(enable_update=not dry_run)
     elif mode == "today":
         post = get_todays_book_post()
     else:
@@ -155,7 +156,8 @@ def handle_request(request):
         "Content-Type": "application/json",
         "Authorization": secret_token
     }
-    resp = requests.post(os.environ["POST_URL"], headers=headers, json=data)
-    print(resp.content)
+    if not dry_run:
+        resp = requests.post(os.environ["POST_URL"], headers=headers, json=data)
+        print(resp.content)
     return "OK"
 
