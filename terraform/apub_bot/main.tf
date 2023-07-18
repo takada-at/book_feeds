@@ -40,7 +40,7 @@ resource "google_kms_key_ring_iam_binding" "key_ring" {
   ]
 }
 
-resource "google_cloud_run_v2_service" "default" {
+/* resource "google_cloud_run_v2_service" "default" {
   name     = "apub-bot1"
   location = "us-central1"
   ingress = "INGRESS_TRAFFIC_ALL"
@@ -71,11 +71,16 @@ resource "google_cloud_run_v2_service" "default" {
       }
     }
   }
+} */
+
+data "google_cloud_run_service" "default" {
+  name = "apub-bot1"
+  location = var.region
 }
 
 resource "google_cloud_run_v2_service_iam_binding" "default" {
-  location = google_cloud_run_v2_service.default.location
-  name     = google_cloud_run_v2_service.default.name
+  location = var.region
+  name     = data.google_cloud_run_service.default.name
   role     = "roles/run.invoker"
   members  = [
     "allUsers"
@@ -83,9 +88,9 @@ resource "google_cloud_run_v2_service_iam_binding" "default" {
 }
 
 resource "google_cloud_run_v2_service_iam_member" "member" {
-  project = google_cloud_run_v2_service.default.project
-  location = google_cloud_run_v2_service.default.location
-  name = google_cloud_run_v2_service.default.name
+  project = var.project_name
+  location = var.region
+  name     = data.google_cloud_run_service.default.name
   role = "roles/run.developer"
   member = "serviceAccount:930396250237@cloudbuild.gserviceaccount.com"
 }
@@ -170,7 +175,7 @@ resource "google_cloudfunctions2_function" "book_post" {
         MONGODB_DATABASE = "ap_bot"
         MONGODB_PASSWORD_PATH = "/etc/secrets/mongodb_password"
         SECRET_TOKEN_PATH = "/etc/secrets_token/apub_bot_secret_token"
-        POST_URL = "${google_cloud_run_v2_service.default.uri}/hook"
+        POST_URL = "${data.google_cloud_run_service.default.status[0].url}/hook"
     }
   }
 }
@@ -240,9 +245,13 @@ resource "google_cloud_scheduler_job" "post2" {
 resource "google_logging_project_sink" "log-sink" {
   name        = "apbot-sink"
   destination = "bigquery.googleapis.com/projects/${var.project_name}/datasets/book_feed"
-  filter      = "resource.type = \"cloud_run_revision\" AND resource.labels.service_name = \"${google_cloud_run_v2_service.default.name}\" AND resource.labels.location=\"${var.region}\" AND textPayload =~ \"\\\"log_type\\\": \\\"like\\\"\""
+  filter      = "resource.type = \"cloud_run_revision\" AND resource.labels.service_name = \"${data.google_cloud_run_service.default.name}\" AND resource.labels.location=\"${var.region}\" AND textPayload =~ \"\\\"log_type\\\": \\\"like\\\"\""
 
   unique_writer_identity = true
+
+  bigquery_options {
+    use_partitioned_tables = true
+  }
 }
 
 resource "google_bigquery_dataset_iam_member" "log_sink" {
