@@ -72,7 +72,7 @@ def get_todays_book_post() -> Optional[str]:
         print(row)
         if not row["title"]:
             continue
-        item = f"{row['authors']}『{row['title']}』{row['publisher']}\n{link}"
+        item = f"{row['author_full']}『{row['title']}』{row['publisher']}\n{link}"
         items.append(item)
     if len(items) == 0:
         return None
@@ -86,7 +86,7 @@ def link_to_a(url: str):
 def get_random_book_post(enable_update: bool = False) -> str:
     book_data = get_random_book(enable_update=enable_update)
     print(book_data)
-    author = book_data["authors"]
+    author = book_data["author_full"]
     title = book_data["title"]
     description = book_data["description"]
     link = link_to_a(book_data["link"])
