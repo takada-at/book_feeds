@@ -27,7 +27,7 @@ def handle_like(request_data: Dict):
     print(line, match)
     if match and match.group(1):
         result = match.group(1)
-        logger.info(json.dumps({"log_type": "like", "subtype": request_data.get("type"), "isbn": result}))
+        print(json.dumps({"log_type": "like", "subtype": request_data.get("type"), "isbn": result}))
 
 
 def get_notes(page: int = 1):
