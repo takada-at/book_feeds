@@ -60,6 +60,11 @@
     "mode": "NULLABLE"
   },
   {
+    "name": "series",
+    "type": "string",
+    "mode": "NULLABLE"
+  },
+  {
     "name": "author_data",
     "type": "RECORD",
     "mode": "REPEATED",

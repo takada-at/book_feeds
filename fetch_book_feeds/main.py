@@ -30,11 +30,12 @@ class HanmotoData(NamedTuple):
         c_code = self.openbd["c_code"] if self.openbd else ""
         author_data = self.openbd["authors"] if self.openbd else []
         label = self.openbd["label"] if self.openbd else ""
+        series = self.openbd["series"] if self.openbd else ""
         return dict(id=self.id, raw_title=self.raw_title, title=self.title,
                     authors=self.authors, publisher=self.publisher,
                     publish_date=self.publish_date, link=self.link,
                     isbn=self.isbn, description=description, keywords=keyword, c_code=c_code,
-                    author_data=author_data, label=label)
+                    author_data=author_data, label=label, series=series)
 
 
 def upload_gcs(bucket_name: str, path: str, local_path):
@@ -58,15 +59,18 @@ def download_gcs(bucket_name: str, path: str) -> str:
         return ""
 
 
-def get_label(onix):
+def get_title_detail(onix):
     label = None
+    series = None
     if "Collection" in onix["DescriptiveDetail"] and onix["DescriptiveDetail"]["Collection"].get("CollectionType") == "10":
         collection = onix["DescriptiveDetail"]["Collection"]
         if "TitleDetail" in collection:
             for elm in collection["TitleDetail"].get("TitleElement", []):
                 if elm["TitleElementLevel"] == "02":
-                    return elm["TitleText"]["content"]
-    return label
+                    label = elm["TitleText"]["content"]
+                elif elm["TitleElementLevel"] == "03":
+                    series = elm["TitleText"]["content"]
+    return dict(label=label, series=series)
 
 
 def parse_openbd(record):
@@ -78,7 +82,9 @@ def parse_openbd(record):
             description = collateral["Text"]
             break
     authors = onix["DescriptiveDetail"]["Contributor"]
-    label = get_label(onix)
+    title_detail = get_title_detail(onix)
+    label = title_detail.get("label", "")
+    series = title_detail.get("series", "")
     keyword = ""
     c_code = ""
     if "Subject" in onix["DescriptiveDetail"]:
@@ -96,6 +102,7 @@ def parse_openbd(record):
         keyword=keyword,
         c_code=c_code,
         label=label,
+        series=series
     )
 
 
