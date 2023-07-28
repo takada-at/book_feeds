@@ -6,6 +6,7 @@ import functions_framework
 import gzip
 import openai
 import os
+import pandas as pd
 import pytz
 import tempfile
 
@@ -73,7 +74,7 @@ def do_openai_api(df):
     ]
 
     # completion = openai.ChatCompletion.create(model="gpt-4", messages=prompt)
-    completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", temperature=0, timeout=60,
+    completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", temperature=0.6, timeout=60,
                                               messages=messages)
     print(prompt)
     print(completion["choices"][0]["message"]["content"])
@@ -83,15 +84,18 @@ def do_openai_api(df):
 def categorize(df):
     unit = 5
     all_result = []
+    dfs = []
     for i in range(0, len(df), unit):
-        target = df[i:i+unit]
+        target = df.loc[i:i+unit].copy()
         result = do_openai_api(target)
         try:
             all_result += check_result(result, target)
         except AssertionError as e:
             print(e)
             continue
-    return all_result
+        target["genre"] = result
+        dfs.append(target)
+    return pd.concat(dfs, axis=0)
 
 
 def check_result(result, target):
@@ -119,9 +123,8 @@ def categorize_date(target_date: date, bucket_name: str):
     if len(df) == 0:
         print("no data")
         return dict(count=0, date=date_str)
-    result = categorize(df)
+    df = categorize(df)
     df["book_type"] = "novel"
-    df["genre"] = result
     df = df[["isbn", "raw_title", "book_type", "genre"]]
     tmp = tempfile.NamedTemporaryFile("wb")
     # df.to_csv("result.csv", index=False)
@@ -131,7 +134,7 @@ def categorize_date(target_date: date, bucket_name: str):
     tmp.seek(0)
     remote_path = f"categorized/date={date_str}/novel.jsonl.gz"
     upload_gcs(bucket_name, remote_path, tmp.name)
-    return dict(count=len(result), date=date_str)
+    return dict(count=len(df), date=date_str)
 
 
 def get_today():
