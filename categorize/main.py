@@ -58,7 +58,7 @@ def do_openai_api(df):
         author = row["authors"]
         title = row["title"]
         publisher = row["publisher"]
-        description = row["description"].replace("\n", "\\n")
+        description = row["description"].replace("\n", "\\n")[:500]
         if row["label"]:
             label = f"({row['label']})"
         else:

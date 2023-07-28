@@ -104,7 +104,7 @@ def get_random_book_post(enable_update: bool = False) -> str:
 
 def get_random_book(enable_update: bool = True):
     today = datetime.now().date()
-    enddate = today + timedelta(days=30)
+    enddate = today + timedelta(days=60)
     posted_books = get_db_data(mongodb_client)
     # publish_dateが今日以降のものだけを抽出
     posted_books = [d for d in posted_books if d["publish_date"] >= today.isoformat()]
