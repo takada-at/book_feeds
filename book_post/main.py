@@ -85,6 +85,8 @@ def link_to_a(url: str):
 
 def get_random_book_post(enable_update: bool = False) -> str:
     book_data = get_random_book(enable_update=enable_update)
+    if not book_data:
+        return ""
     print(book_data)
     author = book_data["author_full"]
     title = book_data["title"]
