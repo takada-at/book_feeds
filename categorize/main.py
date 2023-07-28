@@ -86,7 +86,11 @@ def categorize(df):
     for i in range(0, len(df), unit):
         target = df[i:i+unit]
         result = do_openai_api(target)
-        all_result += check_result(result, target)
+        try:
+            all_result += check_result(result, target)
+        except AssertionError as e:
+            print(e)
+            continue
     return all_result
 
 

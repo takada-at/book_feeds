@@ -107,6 +107,10 @@ resource "google_cloud_scheduler_job" "job1" {
       schedule = "34 0 * * *"
       days = 30
     }
+    4 = {
+      schedule = "44 0 * * *"
+      days = 60
+    }
   }
   name             = "fetch-book-feeds-daily${each.key}"
   description      = "fetch-book-feeds-daily${each.key}"
@@ -263,6 +267,10 @@ resource "google_cloud_scheduler_job" "job_categorize1" {
     3 = {
       schedule = "0 1 * * *"
       days = 30
+    }
+    4 = {
+      schedule = "10 1 * * *"
+      days = 60
     }
   }
   name             = "categorize-book-feeds-daily${each.key}"
