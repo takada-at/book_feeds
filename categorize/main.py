@@ -83,13 +83,12 @@ def do_openai_api(df):
 
 def categorize(df):
     unit = 5
-    all_result = []
     dfs = []
     for i in range(0, len(df), unit):
-        target = df.loc[i:i+unit].copy()
-        result = do_openai_api(target)
+        target = df.loc[i:i+unit-1].copy()
+        raw_result = do_openai_api(target)
         try:
-            all_result += check_result(result, target)
+            result = check_result(raw_result, target)
         except AssertionError as e:
             print(e)
             continue
