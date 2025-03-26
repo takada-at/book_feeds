@@ -1,3 +1,13 @@
+"""
+版元ドットコムから新刊書籍情報を取得し、OpenBDから追加情報を取得して、
+Google Cloud Storageに保存するCloud Functions用のスクリプト。
+
+このスクリプトは以下の処理を行います:
+1. 版元ドットコムのRSSフィードから指定日の新刊情報を取得
+2. 取得した書籍情報からISBNを抽出し、OpenBDから詳細情報を取得
+3. 取得したデータをGCS上に日付ごとにgzip圧縮したJSONLファイルとして保存
+"""
+
 from datetime import date, datetime, timedelta
 from google.cloud import storage
 from typing import Dict, NamedTuple
@@ -14,6 +24,20 @@ import tempfile
 
 
 class HanmotoData(NamedTuple):
+    """
+    版元ドットコムから取得した書籍データを格納するためのデータクラス。
+    
+    Attributes:
+        id: 版元ドットコムでの書籍ID
+        raw_title: 元のタイトル文字列（著者・出版社情報を含む）
+        title: パース済みの書籍タイトル
+        authors: 著者情報
+        publisher: 出版社名
+        publish_date: 出版日（ISO形式の文字列）
+        link: 書籍詳細ページへのリンク
+        isbn: 書籍のISBNコード
+        openbd: OpenBDから取得した追加情報（辞書型）
+    """
     id: str
     raw_title: str
     title: str
@@ -25,6 +49,13 @@ class HanmotoData(NamedTuple):
     openbd: Dict = None
 
     def to_dict(self):
+        """
+        HanmotoDataオブジェクトを辞書形式に変換するメソッド。
+        OpenBDから取得した追加情報も含めて、すべての書籍情報を辞書形式で返します。
+        
+        Returns:
+            dict: 書籍情報を含む辞書
+        """
         description = self.openbd["description"] if self.openbd else ""
         keyword = self.openbd["keyword"] if self.openbd else ""
         c_code = self.openbd["c_code"] if self.openbd else ""
@@ -38,7 +69,50 @@ class HanmotoData(NamedTuple):
                     author_data=author_data, label=label, series=series)
 
 
+def get_book_info(isbn):
+    url = f"https://www.hanmoto.com/bd/isbn/{isbn}"
+    try:
+        response = requests.get(url)
+        response.raise_for_status()  # Raises HTTPError for bad requests (4xx or 5xx)
+    except requests.exceptions.RequestException as e:
+        return f"Error fetching URL: {e}"
+
+    soup = BeautifulSoup(response.text, 'html.parser')
+
+    # Extract book title
+    # title_element = soup.select_one('h1.book-title-block span.book-title')
+    # title = title_element.text.strip() if title_element else "Title not found"
+
+    # Extract author
+    # author_elements = soup.select('div.book-authors a.book-author span.book-author-name')
+    # authors = [a.text.strip() for a in author_elements] if author_elements else ["Author not found"]
+    # author = ", ".join(authors)
+
+    # Extract publisher
+    # publisher_element = soup.select_one('div.book-publishers a.book-imprint')
+    # publisher = publisher_element.text.strip() if publisher_element else "Publisher not found"
+
+    # Extract C-code
+    ccode_element = soup.select_one('div.book-ccode-num')
+    ccode = ccode_element.text.strip().split()[0] if ccode_element else "C-Code not found"
+    
+    # Extract description
+    description_element = soup.select_one('div.book-contents p')
+    description = description_element.text.strip() if description_element else "Description not found"
+
+    return {
+        "ccode": ccode,
+        "description" : description
+    }
+
+
 def upload_gcs(bucket_name: str, path: str, local_path):
+    """ローカルファイルをGoogle Cloud Storageにアップロードする関数。
+    
+    :param bucket_name: GCSバケット名
+    :param path: GCS上のファイルパス
+    :param local_path: アップロードするローカルファイルのパス
+    """
     project = os.environ["PROJECT_NAME"]
     storage_client = storage.Client(project=project)
     bucket = storage_client.get_bucket(bucket_name)
@@ -48,6 +122,12 @@ def upload_gcs(bucket_name: str, path: str, local_path):
 
 
 def download_gcs(bucket_name: str, path: str) -> str:
+    """Google Cloud Storageからファイルをダウンロードしてテキストとして返す関数。
+    
+    :param bucket_name: GCSバケット名
+    :param path: GCS上のファイルパス
+    :return: ダウンロードしたファイルの内容（テキスト）。ファイルが存在しない場合は空文字列を返す。
+    """
     project = os.environ["PROJECT_NAME"]
     storage_client = storage.Client(project=project)
     bucket = storage_client.get_bucket(bucket_name)
@@ -60,6 +140,11 @@ def download_gcs(bucket_name: str, path: str) -> str:
 
 
 def get_title_detail(onix):
+    """ONIXデータからレーベル名とシリーズ名を抽出する関数。
+    
+    :param onix: OpenBDから取得したONIXデータ
+    :return: レーベル名とシリーズ名を含む辞書
+    """
     label = None
     series = None
     if "Collection" in onix["DescriptiveDetail"] and onix["DescriptiveDetail"]["Collection"].get("CollectionType") == "10":
@@ -74,6 +159,11 @@ def get_title_detail(onix):
 
 
 def parse_openbd(record):
+    """OpenBDから取得した書籍レコードを解析し、必要な情報を抽出する関数。
+    
+    :param record: OpenBDから取得した書籍レコード
+    :return: 抽出した書籍情報を含む辞書（タイトル、説明、著者、キーワード、Cコード、レーベル、シリーズなど）
+    """
     onix = record["onix"]
     title = onix["DescriptiveDetail"]["TitleDetail"]["TitleElement"]["TitleText"]["content"]
     description = ""
@@ -107,6 +197,11 @@ def parse_openbd(record):
 
 
 def fetch_openbk(isbns):
+    """OpenBD APIを使用して複数のISBNコードに対応する書籍情報を取得する関数。
+    
+    :param isbns: 取得したい書籍のISBNコードのリスト
+    :return: ISBNコードをキー、書籍情報を値とする辞書
+    """
     base_url = "https://api.openbd.jp/v1/get?isbn=" + ",".join(isbns)
     resp = requests.get(base_url).json()
     return_value = {}
@@ -120,26 +215,31 @@ def fetch_openbk(isbns):
 
 
 def parse_date(date_str: str) -> str:
-    """parser date
-    sample 'Wed, 05 Jul 2023 00:00:00 +0900
-    :param date_str:
-    :return:
+    """日付文字列をパースしてISO形式の日付文字列に変換する関数。
+    
+    :param date_str: パースする日付文字列（例: 'Wed, 05 Jul 2023 00:00:00 +0900'）
+    :return: ISO形式の日付文字列（例: '2023-07-05'）
     """
     datetime_obj = datetime.strptime(date_str, "%a, %d %b %Y %H:%M:%S %z")
     return datetime_obj.date().isoformat()
 
 
 def parse_title(raw_title: str):
-    """parse title
-    sample '江戸川乱歩⑤\u3000火星の運河 - 江戸川 乱歩(著/文) | 三和書籍'
-    :param title:
-    :return:
+    """タイトル文字列から書籍タイトル、著者、出版社を抽出する関数。
+    
+    :param raw_title: パースするタイトル文字列（例: '江戸川乱歩⑤\u3000火星の運河 - 江戸川 乱歩(著/文) | 三和書籍'）
+    :return: タイトル、著者、出版社の情報を含む辞書
     """
     reg = re.compile(u"(?P<title>.*)\s-\s(?P<author>.*)\s\|\s(?P<publisher>.*)", flags=re.DOTALL)
     return reg.match(raw_title).groupdict()
 
 
 def handle_entries(entries):
+    """RSSフィードから取得したエントリーを処理し、書籍データを構造化する関数。
+    
+    :param entries: RSSフィードから取得したエントリーのリスト
+    :return: 構造化された書籍データのリスト
+    """
     isbns = []
     book_data = []
     for entry in entries:
@@ -165,17 +265,31 @@ def handle_entries(entries):
 
 
 def get_url(date_int: int) -> str:
+    """指定された日数オフセットに基づいて版元ドットコムのRSS URL を生成する関数。
+    
+    :param date_int: 現在の日付からの日数オフセット（正の値は未来、負の値は過去）
+    :return: 版元ドットコムのRSS URL
+    """
     day = f"{date_int}day"
     url = f"https://www.hanmoto.com/ci/bd/search/sdate/{day}/edate/{day}/order/asc/vw/rss20/"
     return url
 
 
 def get_today():
+    """日本時間の現在の日付を取得する関数。
+    
+    :return: 日本時間の現在の日付（date型）
+    """
     tz = pytz.timezone('Asia/Tokyo')
     return datetime.now(tz).date()
     
 
 def fetch_feed_by_date(target_date: date):
+    """指定された日付の版元ドットコムRSSフィードを取得する関数。
+    
+    :param target_date: 取得したい書籍情報の日付
+    :yield: RSSフィードのエントリー
+    """
     today = get_today()
     days = (target_date - today).days
     url = get_url(days)
@@ -186,6 +300,13 @@ def fetch_feed_by_date(target_date: date):
 
 
 def fetch_feed(target_date: date):
+    """指定された日付の書籍情報を取得し、バッチ処理する関数。
+    
+    エントリーを200件ずつバッチ処理して、メモリ使用量を抑えます。
+    
+    :param target_date: 取得したい書籍情報の日付
+    :yield: 構造化された書籍データ
+    """
     entries = []
     unit = 200
     for entry in fetch_feed_by_date(target_date):
@@ -197,21 +318,13 @@ def fetch_feed(target_date: date):
         yield from handle_entries(entries)
 
 
-def get_new_book_cache(bucket_name: str, path: str, today: str):
-    new_book_cache = download_gcs(bucket_name, path)
-    return_values = []
-    for line in new_book_cache.split("\n"):
-        line = line.strip()
-        if not line:
-            continue
-        isbn, date = line.split("\t")
-        if date < today:
-            continue
-        return_values.append((isbn, date))
-    return return_values
-
-
 def fetch_and_save(target_date: date, bucket_name: str):
+    """指定された日付の書籍情報を取得し、GCSに保存する関数。
+    
+    :param target_date: 取得したい書籍情報の日付
+    :param bucket_name: 保存先のGCSバケット名
+    :return: 処理結果の情報（取得した書籍数と日付を含む辞書）
+    """
     date_str = target_date.isoformat()
     feed_data = tempfile.NamedTemporaryFile("wb")
     count = 0
@@ -230,6 +343,11 @@ def fetch_and_save(target_date: date, bucket_name: str):
 
 @functions_framework.http
 def handle_request(request):
+    """Cloud Functionsのエントリーポイント。HTTPリクエストを処理し、書籍情報を取得・保存する。
+    
+    :param request: HTTPリクエストオブジェクト
+    :return: 処理結果のJSON応答
+    """
     bucket_name = os.environ.get("BUCKET_NAME")
     json_data = request.get_json()
     print(json_data)
