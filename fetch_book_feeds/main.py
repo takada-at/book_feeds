@@ -8,6 +8,7 @@ Google Cloud Storageに保存するCloud Functions用のスクリプト。
 3. 取得したデータをGCS上に日付ごとにgzip圧縮したJSONLファイルとして保存
 """
 
+from bs4 import BeautifulSoup
 from datetime import date, datetime, timedelta
 from google.cloud import storage
 from typing import Dict, NamedTuple
@@ -22,6 +23,9 @@ import requests
 import re
 import tempfile
 import time
+
+
+ENABLE_CRAWLING = False
 
 
 class HanmotoData(NamedTuple):
@@ -88,6 +92,10 @@ class HanmotoData(NamedTuple):
 
 
 def get_book_info(isbn):
+    """版元ドットコムの書籍詳細ページからCコードと書籍説明を取得する関数。
+    :param isbn: 書籍のISBNコード
+    :return: Cコードと書籍説明を含む辞書
+    """
     url = f"https://www.hanmoto.com/bd/isbn/{isbn}"
     try:
         response = requests.get(url)
