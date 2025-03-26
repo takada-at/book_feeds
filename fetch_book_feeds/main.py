@@ -303,7 +303,9 @@ def handle_entries(entries):
     for bd in book_data:
         if bd.isbn in openbd_data:
             bd = bd._replace(openbd=openbd_data[bd.isbn])
-        if bd.openbd and (not bd.openbd["description"] or not bd.openbd["c_code"]):
+        if ENABLE_CRAWLING and (
+            bd.openbd is None or not bd.openbd["description"] or not bd.openbd["c_code"]
+        ):
             from_hanmotoweb = get_book_info(bd.isbn)
             bd = bd._replace(from_hanmotoweb=from_hanmotoweb)
             time.sleep(1)

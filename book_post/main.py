@@ -19,9 +19,9 @@ bigquery_client = bigquery.Client(project=PROJECT_NAME)
 def get_client():
     uri = "mongodb+srv://ap_bot:{password}@serverlessinstance0.fzzbd4i.mongodb.net/?retryWrites=true&w=majority"
     password = open(os.environ["MONGODB_PASSWORD_PATH"]).read().strip()
-    client = MongoClient(uri.format(password=password), server_api=ServerApi('1'))
+    client = MongoClient(uri.format(password=password), server_api=ServerApi("1"))
     try:
-        client.admin.command('ping')
+        client.admin.command("ping")
     except Exception as e:
         print(e)
     return client
@@ -68,7 +68,7 @@ def get_todays_book_post() -> Optional[str]:
     items = []
     datestr = today.strftime("%Y年%m月%d日")
     for i, row in data.iterrows():
-        link = link_to_a(row['link'])
+        link = link_to_a(row["link"])
         print(row)
         if not row["title"]:
             continue
@@ -131,7 +131,7 @@ def get_random_book(enable_update: bool = True):
 
 
 def get_today():
-    tz = pytz.timezone('Asia/Tokyo')
+    tz = pytz.timezone("Asia/Tokyo")
     return datetime.now(tz).date()
 
 
@@ -151,15 +151,9 @@ def handle_request(request):
     if not post:
         return "OK"
     secret_token = open(os.environ["SECRET_TOKEN_PATH"]).read().strip()
-    data = {
-        "content": post
-    }
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": secret_token
-    }
+    data = {"content": post}
+    headers = {"Content-Type": "application/json", "Authorization": secret_token}
     if not dry_run:
         resp = requests.post(os.environ["POST_URL"], headers=headers, json=data)
         print(resp.content)
     return "OK"
-
