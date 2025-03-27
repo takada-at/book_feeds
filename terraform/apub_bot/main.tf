@@ -3,6 +3,12 @@ provider "google" {
   region      = var.region
 }
 
+terraform {
+  backend "gcs" {
+    bucket = "td-book-storage"
+  }
+}
+
 resource "google_project_iam_member" "member" {
   project = var.project_name
   role = "roles/bigquery.jobUser"

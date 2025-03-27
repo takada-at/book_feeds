@@ -3,6 +3,12 @@ provider "google" {
   region      = var.region
 }
 
+terraform {
+  backend "gcs" {
+    bucket = "td-book-storage"
+  }
+}
+
 resource "google_service_account" "default" {
   account_id   = "book-service-account"
   display_name = "Book Service Account"
