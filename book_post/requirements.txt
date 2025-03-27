@@ -1,9 +1,9 @@
 db-dtypes==1.1.1
-google-cloud-bigquery==3.11.3
-google-cloud-secret-manager==2.16.2
-google-cloud-storage==2.10.0
-functions-framework==3.4.0
-openai==0.27.8
+google-cloud-bigquery==3.31.0
+google-cloud-secret-manager==2.23.2
+google-cloud-storage==3.1.0
+functions-framework==3.8.2
+numpy==1.25.0
 pandas==2.0.3
 pymongo==4.4.0
-pytz==2023.3
+pytz==2025.2
