@@ -19,13 +19,14 @@ import gzip
 import json
 import os
 import pytz
+import random
 import requests
 import re
 import tempfile
 import time
 
 
-ENABLE_CRAWLING = False
+ENABLE_CRAWLING = True
 
 
 class HanmotoData(NamedTuple):
@@ -67,9 +68,13 @@ class HanmotoData(NamedTuple):
         keyword = self.openbd["keyword"] if self.openbd else ""
         c_code = self.openbd["c_code"] if self.openbd else ""
         author_data = self.openbd["authors"] if self.openbd else []
-        if not c_code and self.from_hanmotoweb:
+        if not c_code and self.from_hanmotoweb and self.from_hanmotoweb["ccode"]:
             c_code = self.from_hanmotoweb["ccode"]
-        if not description and self.from_hanmotoweb:
+        if (
+            not description
+            and self.from_hanmotoweb
+            and self.from_hanmotoweb["description"]
+        ):
             description = self.from_hanmotoweb["description"]
         label = self.openbd["label"] if self.openbd else ""
         series = self.openbd["series"] if self.openbd else ""
@@ -101,9 +106,10 @@ def get_book_info(isbn):
         response = requests.get(url)
         response.raise_for_status()  # Raises HTTPError for bad requests (4xx or 5xx)
     except requests.exceptions.RequestException as e:
-        return f"Error fetching URL: {e}"
+        return None
 
     soup = BeautifulSoup(response.text, "html.parser")
+    return_value = {}
 
     # Extract book title
     # title_element = soup.select_one('h1.book-title-block span.book-title')
@@ -120,17 +126,11 @@ def get_book_info(isbn):
 
     # Extract C-code
     ccode_element = soup.select_one("div.book-ccode-num")
-    ccode = (
-        ccode_element.text.strip().split()[0] if ccode_element else "C-Code not found"
-    )
+    ccode = ccode_element.text.strip().split()[0][1:] if ccode_element else None
 
     # Extract description
     description_element = soup.select_one("div.book-contents p")
-    description = (
-        description_element.text.strip()
-        if description_element
-        else "Description not found"
-    )
+    description = description_element.text.strip() if description_element else None
 
     return {"ccode": ccode, "description": description}
 
@@ -278,6 +278,7 @@ def handle_entries(entries):
     """
     isbns = []
     book_data = []
+    print(len(entries))
     for entry in entries:
         raw_title = entry["title"]
         id_ = entry["id"]
@@ -307,8 +308,10 @@ def handle_entries(entries):
             bd.openbd is None or not bd.openbd["description"] or not bd.openbd["c_code"]
         ):
             from_hanmotoweb = get_book_info(bd.isbn)
-            bd = bd._replace(from_hanmotoweb=from_hanmotoweb)
-            time.sleep(1)
+            if from_hanmotoweb:
+                bd = bd._replace(from_hanmotoweb=from_hanmotoweb)
+            sleep_time = random.randint(3, 10) / 10.0
+            time.sleep(sleep_time)
         return_values.append(bd.to_dict())
     return return_values
 

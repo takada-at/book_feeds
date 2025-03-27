@@ -75,7 +75,7 @@ resource "google_cloudfunctions2_function" "function" {
     max_instance_count  = 1
     max_instance_request_concurrency = 1
     service_account_email = google_service_account.default.email
-    timeout_seconds     = 120
+    timeout_seconds     = 1200
     environment_variables = {
         PROJECT_NAME = var.project_name
         BUCKET_NAME = google_storage_bucket.data_storage.name
@@ -205,7 +205,7 @@ resource "google_cloudfunctions2_function" "categorize" {
   service_config {
     max_instance_count  = 1
     max_instance_request_concurrency = 1
-    timeout_seconds     = 480
+    timeout_seconds     = 1200
     available_memory    = "512M"
     service_account_email = google_service_account.default.email
     secret_volumes {

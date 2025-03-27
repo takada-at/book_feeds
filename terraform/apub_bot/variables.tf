@@ -1,4 +1,5 @@
 variable "project_name" {
+  default = "peak-bit-229907"
 }
 
 variable "region" {

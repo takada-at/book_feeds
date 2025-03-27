@@ -2,9 +2,10 @@ from datetime import date, datetime, timedelta
 from google.cloud import bigquery
 from google.cloud import secretmanager
 from google.cloud import storage
+from openai import OpenAI
 import functions_framework
 import gzip
-import openai
+import json
 import os
 import pandas as pd
 import pytz
@@ -15,6 +16,7 @@ PROJECT_NAME = os.environ["PROJECT_NAME"]
 bigquery_client = bigquery.Client(PROJECT_NAME)
 secret_manager_client = secretmanager.SecretManagerServiceClient()
 storage_client = storage.Client(project=PROJECT_NAME)
+openai_client = OpenAI()
 SQL = """SELECT isbn, raw_title, authors, title, publisher, description, label
 FROM book_feed.external_new_books
 WHERE
@@ -33,25 +35,55 @@ def upload_gcs(bucket_name: str, path: str, local_path):
 
 def fetch(target_date: date):
     job_config = bigquery.QueryJobConfig(
-        query_parameters=[
-            bigquery.ScalarQueryParameter("date", "DATE", target_date)
-        ]
+        query_parameters=[bigquery.ScalarQueryParameter("date", "DATE", target_date)]
     )
     return bigquery_client.query(SQL, job_config=job_config).to_dataframe()
 
 
+def schema():
+    return {
+        "type": "json_schema",
+        "json_schema": {
+            "name": "book_categories",
+            "strict": True,
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "number": {"type": "integer"},
+                                "genre": {"type": "string"},
+                            },
+                            "required": [
+                                "number",
+                                "genre",
+                            ],
+                            "additionalProperties": False,
+                        },
+                    }
+                },
+                "required": ["items"],
+                "additionalProperties": False,
+            },
+        },
+    }
+
+
 def do_openai_api(df):
     system_prompt = """タスク
-- これらの小説を以下のカテゴリーに分類しなさい。
+- これらの小説を以下のカテゴリーに分類し、JSONで返しなさい
 
 カテゴリは以下から選びなさい。
 ミステリ、ライトノベル、ホラー、SF、ファンタジー、時代小説、戦争もの、児童向け、恋愛小説、官能小説、純文学、その他
 
 ## OUTPUT FORMAT
-以下のフォーマット以外のものは出力しないでください。
-
-<num1>. <category1>
-<num2>. <category2>
+[
+    {"number": 1, "genre": "ミステリ"},
+    {"number": 2, "genre": "ライトノベル"},
+]
 """
     lines = []
     for i, row in df.iterrows():
@@ -64,28 +96,39 @@ def do_openai_api(df):
         else:
             label = ""
         line = f"{i + 1}. {author}『{title}』{label}{publisher}"
-        line += f"\n    \"{description}\""
+        line += f'\n    "{description}"'
         lines.append(line)
     books = "\n".join(lines)
     prompt = f"# BOOKS\n{books}"
     messages = [
         {"role": "system", "content": system_prompt},
-        {"role": "user", "content": prompt}
+        {"role": "user", "content": prompt},
     ]
-
-    # completion = openai.ChatCompletion.create(model="gpt-4", messages=prompt)
-    completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", temperature=0.6, timeout=60,
-                                              messages=messages)
+    args = dict(
+        model="gpt-4o-mini",
+        temperature=0.6,
+        timeout=60,
+        messages=messages,
+        response_format=schema(),
+    )
+    completion = openai_client.chat.completions.create(**args)
     print(prompt)
-    print(completion["choices"][0]["message"]["content"])
-    return completion["choices"][0]["message"]["content"]
+    print(completion.choices[0].message.content)
+    return parse_json(completion.choices[0].message.content)
+
+
+def parse_json(result):
+    try:
+        return json.loads(result)
+    except json.JSONDecodeError as e:
+        return None
 
 
 def categorize(df):
     unit = 5
     dfs = []
     for i in range(0, len(df), unit):
-        target = df.loc[i:i+unit-1].copy()
+        target = df.loc[i : i + unit - 1].copy()
         raw_result = do_openai_api(target)
         try:
             result = check_result(raw_result, target)
@@ -98,13 +141,11 @@ def categorize(df):
 
 
 def check_result(result, target):
+    print("result", result)
+    assert len(result["items"]) == len(target)
     return_values = []
-    for line in result.split("\n"):
-        line = line.strip()
-        if not line:
-            continue
-        return_values.append(line.split(".")[-1].strip())
-    assert len(return_values) == len(target)
+    for item in result["items"]:
+        return_values.append(item["genre"])
     return return_values
 
 
@@ -117,7 +158,7 @@ def fetch_secret_version(key):
 def categorize_date(target_date: date, bucket_name: str):
     date_str = target_date.isoformat()
     api_key = open(os.environ["SECRET_KEY_PATH"]).read()
-    openai.api_key = api_key
+    openai_client.api_key = api_key
     df = fetch(target_date)
     if len(df) == 0:
         print("no data")
@@ -137,7 +178,7 @@ def categorize_date(target_date: date, bucket_name: str):
 
 
 def get_today():
-    tz = pytz.timezone('Asia/Tokyo')
+    tz = pytz.timezone("Asia/Tokyo")
     return datetime.now(tz).date()
 
 
