@@ -16,7 +16,7 @@ PROJECT_NAME = os.environ["PROJECT_NAME"]
 bigquery_client = bigquery.Client(PROJECT_NAME)
 secret_manager_client = secretmanager.SecretManagerServiceClient()
 storage_client = storage.Client(project=PROJECT_NAME)
-openai_client = OpenAI()
+openai_client = None
 SQL = """SELECT isbn, raw_title, authors, title, publisher, description, label
 FROM book_feed.external_new_books
 WHERE
@@ -111,6 +111,7 @@ def do_openai_api(df):
         messages=messages,
         response_format=schema(),
     )
+    openai_client = get_openai_client()
     completion = openai_client.chat.completions.create(**args)
     print(prompt)
     print(completion.choices[0].message.content)
@@ -155,10 +156,16 @@ def fetch_secret_version(key):
     return response.payload.data.decode("UTF-8")
 
 
+def get_openai_client():
+    global openai_client
+    if openai_client is None:
+        api_key = open(os.environ["SECRET_KEY_PATH"]).read()
+        openai_client = OpenAI(api_key=api_key)
+    return openai_client
+
+
 def categorize_date(target_date: date, bucket_name: str):
     date_str = target_date.isoformat()
-    api_key = open(os.environ["SECRET_KEY_PATH"]).read()
-    openai_client.api_key = api_key
     df = fetch(target_date)
     if len(df) == 0:
         print("no data")

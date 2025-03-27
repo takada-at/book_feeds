@@ -116,6 +116,7 @@ resource "google_cloud_scheduler_job" "job1" {
   description      = "fetch-book-feeds-daily${each.key}"
   schedule         = each.value.schedule
   time_zone        = "Asia/Tokyo"
+  attempt_deadline = "1600s"
 
   http_target {
     http_method = "POST"
@@ -277,6 +278,7 @@ resource "google_cloud_scheduler_job" "job_categorize1" {
   description      = "categorize-book-feeds-daily${each.key}"
   schedule         = each.value.schedule
   time_zone        = "Asia/Tokyo"
+  attempt_deadline = "1600s"
 
   http_target {
     http_method = "POST"
