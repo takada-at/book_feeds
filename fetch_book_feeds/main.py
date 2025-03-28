@@ -103,7 +103,12 @@ def get_book_info(isbn):
     """
     url = f"https://www.hanmoto.com/bd/isbn/{isbn}"
     try:
-        response = requests.get(url)
+        response = requests.get(
+            url,
+            headers={
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+            },
+        )
         response.raise_for_status()  # Raises HTTPError for bad requests (4xx or 5xx)
     except requests.exceptions.RequestException as e:
         return None
@@ -309,7 +314,10 @@ def handle_entries(entries):
         ):
             from_hanmotoweb = get_book_info(bd.isbn)
             if from_hanmotoweb:
+                print("Got book info from hanmoto.com for ISBN:", bd.isbn)
                 bd = bd._replace(from_hanmotoweb=from_hanmotoweb)
+            else:
+                print("Failed to get book info from hanmoto.com for ISBN:", bd.isbn)
             sleep_time = random.randint(3, 10) / 10.0
             time.sleep(sleep_time)
         return_values.append(bd.to_dict())
