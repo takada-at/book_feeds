@@ -6,6 +6,7 @@ provider "google" {
 terraform {
   backend "gcs" {
     bucket = "td-book-storage"
+    prefix  = "terraform/resource/state"
   }
 }
 
@@ -164,7 +165,7 @@ resource google_bigquery_table table {
 
 resource google_bigquery_table table2 {
   dataset_id = google_bigquery_dataset.dataset.dataset_id
-  deletion_protection=false
+  deletion_protection = false
   table_id = "external_categorized"
   external_data_configuration {
     source_format = "NEWLINE_DELIMITED_JSON"
@@ -238,27 +239,23 @@ resource "google_cloud_run_service_iam_binding" "categorize" {
   ]
 }
 
-resource "google_bigquery_table_iam_binding" "binding" {
+resource "google_bigquery_table_iam_member" "member" {
   project = google_bigquery_table.table.project
   dataset_id = google_bigquery_table.table.dataset_id
   table_id = google_bigquery_table.table.table_id
   role = "roles/bigquery.dataViewer"
-  members = [
-    "serviceAccount:${google_service_account.default.email}"
-  ]
+  member = "serviceAccount:${google_service_account.default.email}"
 }
 
 data "google_secret_manager_secret" "openai" {
   secret_id = "openai_api_key"
 }
 
-resource "google_secret_manager_secret_iam_binding" "member" {
+resource "google_secret_manager_secret_iam_member" "member" {
   project = var.project_name
   secret_id = data.google_secret_manager_secret.openai.secret_id
   role = "roles/secretmanager.secretAccessor"
-  members = [
-    "serviceAccount:${google_service_account.default.email}"
-  ]
+  member = "serviceAccount:${google_service_account.default.email}"
 }
 
 resource "google_cloud_scheduler_job" "job_categorize1" {

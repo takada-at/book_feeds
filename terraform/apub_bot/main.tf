@@ -6,6 +6,7 @@ provider "google" {
 terraform {
   backend "gcs" {
     bucket = "td-book-storage"
+    prefix  = "terraform/apub_bot/state"
   }
 }
 
