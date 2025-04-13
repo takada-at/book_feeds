@@ -23,7 +23,7 @@ WITH base AS (
   WHERE
     publish_date BETWEEN @start_date AND @end_date
 )
-SELECT isbn, publish_date, authors, author_full, base.title, c.genre, publisher, c_code, description, link
+SELECT isbn, publish_date, authors, IF(author_full<>'', author_full, authors) AS author_full, base.title, c.genre, publisher, c_code, description, link
 FROM `peak-bit-229907.book_feed.external_categorized` AS c
 LEFT JOIN base USING (isbn)
 WHERE
