@@ -105,7 +105,7 @@ def do_openai_api(df):
         {"role": "user", "content": prompt},
     ]
     args = dict(
-        model="gpt-4o-mini",
+        model="gpt-4.1-mini",
         temperature=0.6,
         timeout=60,
         messages=messages,

@@ -34,19 +34,15 @@ resource "google_storage_bucket" "data_storage" {
   }
 }
 
-resource "google_storage_bucket_iam_binding" "binding" {
+resource "google_storage_bucket_iam_member" "member" {
   bucket  = google_storage_bucket.data_storage.name
-  members = [
-    "serviceAccount:${google_service_account.default.email}"
-  ]
+  member = "serviceAccount:${google_service_account.default.email}"
   role    = "roles/storage.objectAdmin"
 }
 
-resource "google_storage_bucket_iam_binding" "binding2" {
+resource "google_storage_bucket_iam_member" "member2" {
   bucket  = google_storage_bucket.data_storage.name
-  members = [
-    "serviceAccount:${google_service_account.default.email}"
-  ]
+  member = "serviceAccount:${google_service_account.default.email}"
   role    = "roles/storage.legacyBucketReader"
 }
 
@@ -90,14 +86,12 @@ resource "google_cloudfunctions2_function" "function" {
   }
 }
 
-resource "google_cloud_run_service_iam_binding" "binding" {
+resource "google_cloud_run_service_iam_member" "member" {
   project = var.project_name
   service = google_cloudfunctions2_function.function.name
   location = google_cloudfunctions2_function.function.location
   role = "roles/run.invoker"
-  members = [
-    "serviceAccount:${google_service_account.default.email}"
-  ]
+  member = "serviceAccount:${google_service_account.default.email}"
 }
 
 resource "google_cloud_scheduler_job" "job1" {
@@ -229,14 +223,12 @@ resource "google_cloudfunctions2_function" "categorize" {
   }
 }
 
-resource "google_cloud_run_service_iam_binding" "categorize" {
+resource "google_cloud_run_service_iam_member" "categorize" {
   project = var.project_name
   service = google_cloudfunctions2_function.categorize.name
   location = google_cloudfunctions2_function.categorize.location
   role = "roles/run.invoker"
-  members = [
-    "serviceAccount:${google_service_account.default.email}"
-  ]
+  member = "serviceAccount:${google_service_account.default.email}"
 }
 
 resource "google_bigquery_table_iam_member" "member" {
